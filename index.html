@@ -3,210 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sororitas Tactica // Master Engine</title>
+    <title>Sororitas Tactica // High Fidelity</title>
     
-    <!-- FRAMEWORKS -->
+    <!-- LIBRARIES -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <style>
-        /* Base Theme */
-        body { background-color: #020617; color: #e2e8f0; font-family: 'Inter', system-ui, sans-serif; }
-        
-        /* UI Components */
-        .panel { background-color: #0f172a; border: 1px solid #1e293b; border-radius: 0.75rem; overflow: hidden; transition: border-color 0.3s; }
-        .panel:hover { border-color: #334155; }
-        
-        .input-dark { 
-            background-color: #1e293b; border: 1px solid #334155; color: white; 
-            padding: 0.5rem; border-radius: 0.375rem; width: 100%; font-size: 0.875rem;
-            transition: all 0.2s; 
-        }
-        .input-dark:focus { border-color: #d97706; outline: none; ring: 2px solid rgba(217, 119, 6, 0.2); }
-        .input-dark:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .btn-action { 
-            background: linear-gradient(135deg, #b45309 0%, #d97706 100%); 
-            color: white; font-weight: 700; border-radius: 0.5rem; 
-            transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.05em;
-        }
-        .btn-action:hover { filter: brightness(110%); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3); }
-        .btn-action:active { transform: translateY(0); }
-
-        /* Status Indicators */
-        .stat-buffed { color: #4ade80; font-weight: bold; text-shadow: 0 0 10px rgba(74, 222, 128, 0.2); }
-        
-        /* Tags */
-        .tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; margin-right: 4px; border: 1px solid transparent; }
-        .tag-melta { background: rgba(239, 68, 68, 0.1); color: #fca5a5; border-color: rgba(239, 68, 68, 0.3); }
-        .tag-torrent { background: rgba(249, 115, 22, 0.1); color: #fdba74; border-color: rgba(249, 115, 22, 0.3); }
-        .tag-heavy { background: rgba(59, 130, 246, 0.1); color: #bfdbfe; border-color: rgba(59, 130, 246, 0.3); }
-        .tag-melee { background: rgba(168, 85, 247, 0.1); color: #e9d5ff; border-color: rgba(168, 85, 247, 0.3); }
-        
-        /* Animation */
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-        .animate-live { animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        body { background-color: #0f172a; color: #cbd5e1; font-family: 'Inter', sans-serif; }
+        .panel { background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; }
+        .input-dark { background-color: #020617; border: 1px solid #475569; color: white; padding: 0.5rem; border-radius: 0.25rem; width: 100%; font-size: 0.85rem; }
+        .btn-gold { background: linear-gradient(135deg, #b45309 0%, #d97706 100%); color: white; font-weight: 700; transition: all 0.2s; }
+        .btn-gold:hover { filter: brightness(110%); transform: translateY(-1px); }
+        .tag { font-size: 0.65rem; padding: 1px 4px; border-radius: 2px; font-weight: 700; text-transform: uppercase; margin-right: 3px; }
+        .tag-heavy { background: #1e3a8a; color: #bfdbfe; }
+        .tag-melta { background: #7f1d1d; color: #fecaca; }
+        .tag-rapid { background: #14532d; color: #bbf7d0; }
+        .tag-torrent { background: #7c2d12; color: #fed7aa; }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8">
+<body class="p-4 md:p-8 min-h-screen">
 
 <div id="app" class="max-w-7xl mx-auto">
 
     <!-- HEADER -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-6 border-b border-slate-800 pb-6">
+    <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-end">
         <div>
-            <div class="flex items-center gap-3">
-                <i class="ph-fill ph-sword text-4xl text-amber-500"></i>
-                <div>
-                    <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-yellow-200 tracking-tight">SORORITAS TACTICA</h1>
-                    <p class="text-slate-500 text-xs font-bold tracking-widest uppercase mt-1">Combat Simulation Engine v4.0</p>
-                </div>
-            </div>
+            <h1 class="text-3xl font-black text-amber-500 tracking-tight uppercase">Sororitas Tactica <span class="text-slate-600 text-lg">v5.0</span></h1>
+            <p class="text-xs text-slate-400 font-mono">Data Source: Imperium - Adepta Sororitas.cat (Revision 98)</p>
         </div>
-        
-        <div class="flex gap-4 items-end">
-            <!-- Global Config -->
-            <div class="space-y-1">
-                <label class="text-[10px] font-bold text-slate-500 uppercase">Detachment</label>
-                <select v-model="global.detachment" class="input-dark border-amber-900/50 bg-amber-950/20 text-amber-500 font-bold min-w-[200px]">
+        <div class="flex gap-3">
+             <div class="text-right">
+                <label class="text-[10px] uppercase font-bold text-slate-500">Detachment</label>
+                <select v-model="global.detachment" class="input-dark border-amber-800 text-amber-500 font-bold">
                     <option value="bringers_of_flame">Bringers of Flame</option>
                     <option value="hallowed_martyrs">Hallowed Martyrs</option>
                     <option value="penitent_host">Penitent Host</option>
                     <option value="army_of_faith">Army of Faith</option>
                 </select>
             </div>
-             <div class="space-y-1">
-                 <label class="text-[10px] font-bold text-slate-500 uppercase">Miracle Pool</label>
-                <div class="flex items-center bg-slate-900 rounded border border-slate-700 h-[38px]">
-                    <button @click="global.mdPool = Math.max(0, global.mdPool - 1)" class="px-3 hover:text-white text-slate-500 transition-colors h-full">-</button>
-                    <span class="font-mono font-bold text-white w-8 text-center">{{ global.mdPool }}</span>
-                    <button @click="global.mdPool++" class="px-3 hover:text-white text-slate-500 transition-colors h-full">+</button>
-                </div>
+             <div class="text-right">
+                <label class="text-[10px] uppercase font-bold text-slate-500">Miracle Dice</label>
+                <input type="number" v-model="global.mdPool" class="input-dark w-16 text-center font-mono text-lg font-bold" min="0">
             </div>
         </div>
     </header>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- LEFT COLUMN: BUILDER -->
-        <div class="lg:col-span-4 space-y-6">
+
+        <!-- 1. BUILDER PANEL -->
+        <div class="lg:col-span-4 space-y-4">
             
-            <!-- CONFIGURATION PANEL -->
-            <div class="panel p-5 bg-gradient-to-b from-slate-900 to-slate-950">
-                <div class="flex items-center justify-between mb-5">
-                    <h2 class="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wide">
-                        <i class="ph-fill ph-gear text-slate-500"></i> Unit Configuration
-                    </h2>
+            <div class="panel p-4">
+                <h2 class="text-sm font-bold text-white uppercase mb-3 flex items-center gap-2">
+                    <i class="ph-fill ph-user-list text-amber-500"></i> Unit Architect
+                </h2>
+                
+                <!-- Unit Select -->
+                <div class="mb-3">
+                    <label class="text-xs text-slate-500 font-bold uppercase">Datasheet</label>
+                    <select v-model="selection.unitKey" @change="resetWargear" class="input-dark">
+                        <option v-for="(u, key) in db.units" :value="key">{{ u.name }} ({{ u.points }}pts)</option>
+                    </select>
                 </div>
 
-                <div class="space-y-5">
-                    <!-- Unit -->
-                    <div>
-                        <label class="text-xs text-slate-500 font-bold uppercase mb-1 block">Unit Selection</label>
-                        <select v-model="selection.unitKey" @change="resetSelection" class="input-dark">
-                            <option v-for="(u, key) in db.units" :value="key">{{ u.name }} ({{u.points}}pts)</option>
-                        </select>
-                    </div>
+                <!-- Leader Select -->
+                <div class="mb-3">
+                    <label class="text-xs text-slate-500 font-bold uppercase">Attached Leader</label>
+                    <select v-model="selection.leaderKey" class="input-dark">
+                        <option value="none">No Leader</option>
+                        <option v-for="(l, key) in validLeaders" :value="key">{{ l.name }} ({{ l.points }}pts)</option>
+                    </select>
+                </div>
 
-                    <!-- Leader -->
-                    <div>
-                        <label class="text-xs text-slate-500 font-bold uppercase mb-1 block">Attached Leader</label>
-                        <select v-model="selection.leaderKey" class="input-dark">
-                            <option value="none">No Leader</option>
-                            <option v-for="(l, key) in validLeaders" :value="key">{{ l.name }} ({{l.points}}pts)</option>
-                        </select>
-                    </div>
-
-                    <!-- Enhancement -->
-                    <div>
-                        <label class="text-xs text-slate-500 font-bold uppercase mb-1 block">Enhancement</label>
-                        <select v-model="selection.enhancementKey" :disabled="selection.leaderKey === 'none'" class="input-dark">
-                            <option value="none">None</option>
-                            <option v-for="(e, key) in validEnhancements" :value="key">{{ e.name }} ({{e.points}}pts)</option>
-                        </select>
-                    </div>
-
-                    <div class="border-t border-slate-800 my-4"></div>
-
-                    <!-- Context Switches -->
-                    <div class="space-y-3">
-                        <label class="text-xs text-slate-500 font-bold uppercase block">Tactical Context</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button @click="context.closeRange = !context.closeRange" 
-                                class="text-xs p-2 rounded border transition-all flex items-center justify-between"
-                                :class="context.closeRange ? 'bg-amber-900/20 border-amber-600/50 text-amber-200' : 'bg-slate-900 border-slate-700 text-slate-400'">
-                                <span>Range &lt; 12"</span>
-                                <i v-if="context.closeRange" class="ph-fill ph-check-circle"></i>
-                            </button>
-                            <button @click="context.stationary = !context.stationary" 
-                                class="text-xs p-2 rounded border transition-all flex items-center justify-between"
-                                :class="context.stationary ? 'bg-amber-900/20 border-amber-600/50 text-amber-200' : 'bg-slate-900 border-slate-700 text-slate-400'">
-                                <span>Stationary</span>
-                                <i v-if="context.stationary" class="ph-fill ph-check-circle"></i>
-                            </button>
-                            <button @click="context.belowHalf = !context.belowHalf" 
-                                class="text-xs p-2 rounded border transition-all flex items-center justify-between"
-                                :class="context.belowHalf ? 'bg-red-900/20 border-red-600/50 text-red-200' : 'bg-slate-900 border-slate-700 text-slate-400'">
-                                <span>Below Half</span>
-                                <i v-if="context.belowHalf" class="ph-fill ph-check-circle"></i>
-                            </button>
+                <!-- Wargear Configuration -->
+                <div class="mb-3 border-t border-slate-700 pt-3">
+                    <label class="text-xs text-slate-500 font-bold uppercase mb-2 block">Squad Loadout</label>
+                    
+                    <div v-for="(slot, idx) in currentUnit.loadoutOptions" :key="idx" class="mb-2">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300">{{ slot.name }}</span>
+                            <span class="text-slate-500 font-mono">x{{ slot.count }}</span>
                         </div>
+                        <select v-model="selection.loadout[idx]" class="input-dark text-xs">
+                            <option v-for="opt in slot.options" :value="opt">{{ db.profiles[opt].name }}</option>
+                        </select>
                     </div>
                 </div>
+
+                <!-- Context Toggles -->
+                <div class="grid grid-cols-2 gap-2 mt-4">
+                    <button @click="context.halfRange = !context.halfRange" 
+                        class="text-xs p-2 rounded border flex items-center justify-between transition-colors"
+                        :class="context.halfRange ? 'bg-emerald-900/30 border-emerald-600 text-emerald-400' : 'bg-slate-900 border-slate-700 text-slate-500'">
+                        <span>Half Range</span>
+                        <i class="ph-fill ph-crosshair-simple"></i>
+                    </button>
+                    <button @click="context.stationary = !context.stationary" 
+                        class="text-xs p-2 rounded border flex items-center justify-between transition-colors"
+                        :class="context.stationary ? 'bg-blue-900/30 border-blue-600 text-blue-400' : 'bg-slate-900 border-slate-700 text-slate-500'">
+                        <span>Stationary</span>
+                        <i class="ph-fill ph-anchor"></i>
+                    </button>
+                    <button @click="context.belowHalf = !context.belowHalf" 
+                        class="text-xs p-2 rounded border flex items-center justify-between transition-colors"
+                        :class="context.belowHalf ? 'bg-red-900/30 border-red-600 text-red-400' : 'bg-slate-900 border-slate-700 text-slate-500'">
+                        <span>Below Half Str.</span>
+                        <i class="ph-fill ph-heart-break"></i>
+                    </button>
+                </div>
+
             </div>
 
             <!-- COMPILER PREVIEW -->
-            <div class="panel p-5 bg-slate-950 border-slate-800">
-                <h3 class="text-[10px] font-bold text-slate-500 uppercase mb-3 flex items-center justify-between">
-                    <span>Active Volley Profile</span>
-                    <span class="text-amber-500 animate-live">● LIVE</span>
-                </h3>
-                
-                <div v-if="compiledLoadout.length === 0" class="text-xs text-slate-600 text-center py-4">No weapons configured</div>
-
-                <div class="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
-                    <div v-for="wpn in compiledLoadout" class="text-xs bg-slate-900/50 rounded border border-slate-800 p-2">
-                        <div class="flex justify-between items-start mb-1">
-                            <span class="text-slate-200 font-bold">{{ wpn.count }}x {{ wpn.name }}</span>
-                            <div class="flex gap-1">
-                                <span v-if="wpn.buffs.length" class="text-[9px] text-emerald-400 bg-emerald-950/30 px-1 rounded border border-emerald-900">BUFFED</span>
-                            </div>
+            <div class="panel p-4 bg-slate-950">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-[10px] font-bold text-slate-500 uppercase">Active Volley</h3>
+                    <span class="text-[10px] text-amber-500 font-mono">{{ compiledVolley.length }} Profiles</span>
+                </div>
+                <div class="space-y-1 max-h-[250px] overflow-y-auto">
+                    <div v-for="wpn in compiledVolley" class="text-xs border-l-2 border-slate-800 pl-2 py-1">
+                        <div class="flex justify-between">
+                            <span class="font-bold text-slate-200">{{ wpn.count }}x {{ wpn.displayName }}</span>
+                            <span class="font-mono text-slate-500">{{ wpn.bs }}</span>
                         </div>
-                        
-                        <div class="grid grid-cols-4 gap-2 text-slate-400 font-mono mt-2 mb-2">
-                            <div class="text-center bg-slate-950 rounded py-1">
-                                <span class="block text-[8px] text-slate-600 font-sans">STR</span>
-                                <span :class="{'stat-buffed': wpn.s > db.profiles[wpn.profileId].s}">{{ wpn.s }}</span>
-                            </div>
-                            <div class="text-center bg-slate-950 rounded py-1">
-                                <span class="block text-[8px] text-slate-600 font-sans">AP</span>
-                                <span :class="{'stat-buffed': wpn.ap > db.profiles[wpn.profileId].ap}">-{{ wpn.ap }}</span>
-                            </div>
-                            <div class="text-center bg-slate-950 rounded py-1">
-                                <span class="block text-[8px] text-slate-600 font-sans">DMG</span>
-                                {{ wpn.d }}
-                            </div>
-                            <div class="text-center bg-slate-950 rounded py-1">
-                                <span class="block text-[8px] text-slate-600 font-sans">BS</span>
-                                <span :class="{'stat-buffed': wpn.bs < db.profiles[wpn.profileId].bs}">{{ wpn.bs }}+</span>
-                            </div>
+                        <div class="flex gap-2 font-mono text-[10px] text-slate-400 mt-0.5">
+                            <span :class="{'text-emerald-400': wpn.s > db.profiles[wpn.id].s}">S{{wpn.s}}</span>
+                            <span :class="{'text-emerald-400': wpn.ap > db.profiles[wpn.id].ap}">AP-{{wpn.ap}}</span>
+                            <span>D{{wpn.d}}</span>
+                            <span v-if="wpn.tags.includes('Rapid Fire')" class="text-emerald-400">+RF</span>
                         </div>
-
-                        <div class="flex flex-wrap gap-1">
-                            <span v-for="tag in wpn.tags" class="tag" 
+                        <div class="flex flex-wrap gap-1 mt-1">
+                             <span v-for="tag in wpn.tags" class="tag" 
                                 :class="{
+                                    'tag-heavy': tag.includes('Heavy'),
                                     'tag-melta': tag.includes('Melta'),
                                     'tag-torrent': tag.includes('Torrent'),
-                                    'tag-heavy': tag.includes('Heavy'),
-                                    'tag-melee': tag.includes('Melee'),
-                                    'bg-slate-800 text-slate-400': !tag.includes('Melta') && !tag.includes('Torrent')
-                                }">
-                                {{tag}}
-                            </span>
+                                    'tag-rapid': tag.includes('Rapid')
+                                }">{{tag}}</span>
                         </div>
                     </div>
                 </div>
@@ -214,127 +153,79 @@
 
         </div>
 
-        <!-- CENTER COLUMN: SIMULATION -->
-        <div class="lg:col-span-5 space-y-6">
-            
-            <!-- TARGETING COMPUTER -->
-            <div class="panel p-6 bg-slate-900 relative shadow-2xl">
-                <div class="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
-                    <i class="ph-fill ph-crosshair text-9xl"></i>
-                </div>
-
-                 <div class="flex items-center justify-between mb-6 relative z-10">
-                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                        Target Matrix
-                    </h2>
-                     <select v-model="targetKey" class="bg-slate-950 text-xs border border-slate-700 rounded px-3 py-1.5 text-slate-300 focus:border-amber-500 focus:outline-none">
-                        <option value="knight">Imperial Knight (T12)</option>
-                        <option value="rhino">Rhino Transport (T9)</option>
-                        <option value="terminator">Terminator Brick (T6)</option>
-                        <option value="marine">Space Marine (T4)</option>
-                         <option value="horde">Horde/Gaunts (T3)</option>
+        <!-- 2. SIMULATION PANEL -->
+        <div class="lg:col-span-5 space-y-4">
+            <div class="panel p-6 shadow-xl relative overflow-hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-bold text-white">Simulation Engine</h2>
+                    <select v-model="targetKey" class="bg-slate-950 text-xs border border-slate-700 rounded px-2 py-1">
+                        <option v-for="(t, k) in db.targets" :value="k">{{ t.name }} (T{{t.t}})</option>
                     </select>
                 </div>
-                
-                <div class="grid grid-cols-4 gap-2 mb-6 relative z-10">
-                    <div v-for="(val, label) in {T: activeTarget.t, SV: activeTarget.sv+'+', INV: activeTarget.inv+'++', MODELS: activeTarget.models}" 
-                         class="bg-slate-950 p-3 rounded border border-slate-800 flex flex-col items-center justify-center">
-                        <div class="text-[10px] text-slate-500 font-bold mb-1">{{label}}</div>
-                        <div class="text-xl font-mono font-bold text-white">{{val}}</div>
+
+                <div class="grid grid-cols-4 gap-2 mb-6">
+                    <div v-for="(v, l) in {T:activeTarget.t, SV:activeTarget.sv+'+', INV:activeTarget.inv+'++', W:activeTarget.w}" 
+                         class="bg-slate-950 rounded p-2 text-center border border-slate-800">
+                        <div class="text-[10px] text-slate-500 font-bold">{{l}}</div>
+                        <div class="text-xl font-mono font-bold text-white">{{v}}</div>
                     </div>
                 </div>
 
-                <button @click="runDetailedSim" class="btn-action w-full py-4 text-lg relative z-10 flex items-center justify-center gap-2 group">
-                    <i class="ph-fill ph-lightning group-hover:text-yellow-200 transition-colors"></i>
-                    Initiate Simulation
+                <button @click="runSimulation" class="btn-gold w-full py-3 rounded text-sm uppercase tracking-widest shadow-lg shadow-amber-900/20">
+                    Run Monte Carlo (5k)
                 </button>
-                <div class="text-center mt-2 text-[10px] text-slate-600 font-mono">Running 5,000 Iterations (Monte Carlo)</div>
             </div>
 
-            <!-- RESULTS DISPLAY -->
-            <div v-if="results" class="panel bg-slate-900 border-amber-900/30 overflow-hidden shadow-2xl transition-all duration-500 ease-out">
-                <div class="bg-slate-950/80 p-3 border-b border-slate-800 flex justify-between items-center backdrop-blur-sm">
-                    <span class="text-xs font-bold text-amber-500 tracking-wider flex items-center gap-1">
-                        <i class="ph-fill ph-chart-bar"></i> POST-ACTION REPORT
-                    </span>
-                    <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400 border border-slate-700">Efficiency: {{results.efficiency}}</span>
+            <!-- RESULTS -->
+            <div v-if="results" class="panel bg-slate-900 border-amber-900/50 shadow-2xl overflow-hidden">
+                <div class="bg-slate-950/50 p-3 border-b border-slate-800 flex justify-between items-center">
+                    <span class="text-xs font-bold text-amber-500">RESULTS</span>
+                    <span class="text-[10px] text-slate-500">Efficiency: {{ results.eff }}</span>
                 </div>
-                
                 <div class="p-6">
-                    <div class="flex items-end justify-between mb-4">
+                    <div class="flex items-end justify-between mb-2">
                         <div>
-                            <div class="text-6xl font-black text-white tracking-tighter leading-none">{{ results.avgDamage }}</div>
-                            <div class="text-xs text-slate-500 font-bold uppercase mt-2">Expected Wounds</div>
+                            <div class="text-5xl font-black text-white tracking-tighter">{{ results.avg }}</div>
+                            <div class="text-xs text-slate-500 font-bold uppercase mt-1">Expected Damage</div>
                         </div>
                         <div class="text-right">
-                             <div class="text-4xl font-bold leading-none" :class="results.killChance > 50 ? 'text-emerald-400' : 'text-rose-400'">
-                                 {{ results.killChance }}<span class="text-xl align-top">%</span>
+                             <div class="text-3xl font-bold" :class="results.pKill > 50 ? 'text-emerald-400' : 'text-rose-400'">
+                                 {{ results.pKill }}%
                             </div>
-                            <div class="text-xs text-slate-500 font-bold uppercase mt-2">Probability of Kill</div>
+                            <div class="text-xs text-slate-500 font-bold uppercase mt-1">Kill Chance</div>
                         </div>
                     </div>
-
-                    <!-- Kill Bar -->
-                    <div class="relative w-full bg-slate-800 h-4 rounded-full overflow-hidden mb-2">
-                        <div class="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-1000 ease-out" 
-                             :style="{width: results.killChance + '%'}"></div>
-                        <!-- Markers for 50% and 100% -->
-                        <div class="absolute top-0 left-1/2 w-0.5 h-full bg-slate-900/50"></div>
-                    </div>
-                    <div class="flex justify-between text-[10px] text-slate-500 font-mono">
-                        <span>0%</span>
-                        <span>50%</span>
-                        <span>100%</span>
-                    </div>
-                    
-                    <div class="mt-6 pt-4 border-t border-slate-800/50 grid grid-cols-2 gap-4">
-                        <div class="bg-slate-950/50 rounded p-2 text-center border border-slate-800/50">
-                            <div class="text-[10px] text-slate-500 uppercase">Overkill Chance</div>
-                            <div class="text-sm font-bold text-slate-300">{{ results.overkill }}%</div>
-                        </div>
-                        <div class="bg-slate-950/50 rounded p-2 text-center border border-slate-800/50">
-                            <div class="text-[10px] text-slate-500 uppercase">Points Efficiency</div>
-                            <div class="text-sm font-bold text-slate-300">{{ results.efficiencyPts }} <span class="text-[9px] font-normal text-slate-600">dmg/100pts</span></div>
-                        </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mt-4">
+                        <div class="h-full transition-all duration-1000 bg-gradient-to-r from-emerald-600 to-emerald-400" 
+                             :style="{width: results.pKill + '%'}"></div>
                     </div>
                 </div>
             </div>
-
         </div>
 
-        <!-- RIGHT COLUMN: ADVISOR -->
-        <div class="lg:col-span-3 space-y-6">
-            <div class="panel p-5 h-full flex flex-col bg-slate-900">
-                <h2 class="text-xs font-bold text-slate-400 mb-6 uppercase tracking-wider flex items-center gap-2">
-                    <i class="ph-fill ph-scales text-purple-500"></i> List Equilibrium
-                </h2>
+        <!-- 3. ADVISOR PANEL -->
+        <div class="lg:col-span-3 space-y-4">
+            <div class="panel p-4 h-full bg-slate-900 flex flex-col">
+                <h2 class="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider">Tactical Analysis</h2>
                 
-                <div class="space-y-6 flex-grow">
-                    <div v-for="(val, label) in scores" :key="label">
-                        <div class="flex justify-between items-end mb-1.5">
-                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">{{label}}</span>
-                            <span class="text-xs font-mono font-bold text-white">{{ val.score }}<span class="text-slate-600">/100</span></span>
+                <div class="space-y-4 flex-grow">
+                    <div v-for="(s, label) in scores" class="space-y-1">
+                        <div class="flex justify-between text-xs">
+                            <span class="font-bold text-slate-500">{{label}}</span>
+                            <span class="font-mono text-white">{{s.val}}</span>
                         </div>
-                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                            <div class="h-full transition-all duration-1000" 
-                                 :class="val.color" 
-                                 :style="{width: Math.min(val.score, 100) + '%'}"></div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full">
+                            <div class="h-full" :class="s.color" :style="{width: Math.min(s.val, 100)+'%'}"></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-8 pt-6 border-t border-slate-800">
-                    <h3 class="text-[10px] font-bold text-slate-500 uppercase mb-3 flex items-center gap-2">
-                        <i class="ph-fill ph-info"></i> Tactical Log
-                    </h3>
-                    <div v-if="advice.length === 0" class="text-xs text-slate-600 italic pl-2">Systems Nominal. No conflicts detected.</div>
+                <div class="mt-6 pt-4 border-t border-slate-800">
+                    <div v-if="warnings.length === 0" class="text-xs text-slate-600 italic">No configuration conflicts.</div>
                     <ul class="space-y-2">
-                        <li v-for="tip in advice" class="text-[11px] p-2.5 rounded border-l-2 bg-slate-950 leading-relaxed" 
-                            :class="tip.type === 'warn' ? 'border-rose-500 text-rose-200/80' : 'border-blue-500 text-blue-200/80'">
-                            <span class="font-bold block mb-0.5" :class="tip.type === 'warn' ? 'text-rose-400' : 'text-blue-400'">
-                                {{ tip.type === 'warn' ? 'WARNING' : 'INFO' }}
-                            </span>
-                            {{ tip.msg }}
+                        <li v-for="w in warnings" class="text-[10px] p-2 rounded border-l-2 bg-slate-950"
+                            :class="w.type === 'err' ? 'border-rose-500 text-rose-300' : 'border-blue-500 text-blue-300'">
+                            {{ w.msg }}
                         </li>
                     </ul>
                 </div>
@@ -349,308 +240,286 @@
 
     createApp({
         setup() {
-            // --- 1. GLOBAL REGISTRIES (The Manual) ---
+            // --- DATA SOURCE: Based on XML provided ---
             const db = {
-                // Weapons independent of units
                 profiles: {
-                    bolt_pistol: { name: "Bolt Pistol", a:1, bs:3, s:4, ap:0, d:1, tags:["Pistol"] },
-                    bolter: { name: "Bolter", a:1, bs:3, s:4, ap:0, d:1, tags:["Rapid Fire 1"] },
-                    multi_melta: { name: "Multi-melta", a:2, bs:4, s:9, ap:4, d:"d6", melta:2, tags:["Heavy", "Melta"] },
-                    meltagun: { name: "Meltagun", a:1, bs:3, s:9, ap:4, d:"d6", melta:2, tags:["Assault", "Melta"] },
-                    combi_weapon: { name: "Combi-weapon", a:1, bs:4, s:4, ap:0, d:1, tags:["Anti-Infantry 4+", "Devastating Wounds", "Rapid Fire 1"] },
-                    battle_cannon: { name: "Castigator Cannon", a:"d6+3", bs:3, s:10, ap:1, d:3, tags:["Blast", "Ignores Cover"] },
-                    autocannons: { name: "Castigator Autocannons", a:4, bs:3, s:9, ap:1, d:3, tags:["Twin-Linked", "Rapid Fire 4"] },
-                    eviscerator: { name: "Penitent Eviscerator", a:2, bs:4, s:6, ap:2, d:2, tags:["Melee", "Sustained Hits 1"] },
-                    hand_flamer: { name: "Hand Flamer", a:"d6", bs:0, s:4, ap:0, d:1, tags:["Pistol", "Torrent", "Ignores Cover"] },
-                    paragon_mace: { name: "Paragon Mace", a:3, bs:3, s:12, ap:1, d:3, tags:["Melee"] }
+                    // RANGED
+                    boltgun: { name: "Boltgun", range:24, a:1, bs:3, s:4, ap:0, d:1, tags:["Rapid Fire 1"] },
+                    bolt_pistol: { name: "Bolt Pistol", range:12, a:1, bs:3, s:4, ap:0, d:1, tags:["Pistol"] },
+                    multi_melta: { name: "Multi-melta", range:18, a:2, bs:4, s:9, ap:4, d:"d6", melta:2, tags:["Heavy", "Melta"] },
+                    heavy_bolter: { name: "Heavy Bolter", range:36, a:3, bs:4, s:5, ap:1, d:2, tags:["Heavy", "Sustained Hits 1"] },
+                    ministorum_flamer: { name: "Ministorum Flamer", range:12, a:"d6", bs:0, s:5, ap:0, d:1, tags:["Torrent", "Ignores Cover"] },
+                    ministorum_heavy_flamer: { name: "Ministorum Heavy Flamer", range:12, a:"d6", bs:0, s:6, ap:1, d:1, tags:["Torrent", "Ignores Cover"] },
+                    meltagun: { name: "Meltagun", range:12, a:1, bs:3, s:9, ap:4, d:"d6", melta:2, tags:["Assault", "Melta"] },
+                    artificer_storm_bolter: { name: "Artificer-crafted SB", range:24, a:2, bs:3, s:4, ap:0, d:2, tags:["Rapid Fire 2"] },
+                    condemnor: { name: "Condemnor Boltgun", range:24, a:1, bs:3, s:4, ap:0, d:1, tags:["Anti-Psyker 2+", "Devastating Wounds", "Precision", "Rapid Fire 1"] },
+                    
+                    // VEHICLE
+                    castigator_autocannons: { name: "Castigator Autocannons", range:48, a:4, bs:3, s:9, ap:1, d:3, tags:["Twin-Linked", "Rapid Fire 4"] },
+                    castigator_battle_cannon: { name: "Castigator Battle Cannon", range:48, a:"d6+3", bs:3, s:10, ap:1, d:3, tags:["Blast", "Ignores Cover"] },
+                    paragon_melta: { name: "Multi-melta (Paragon)", range:18, a:2, bs:3, s:9, ap:4, d:"d6", melta:2, tags:["Melta"] },
+                    
+                    // MELEE
+                    chainsword: { name: "Chainsword", range:0, a:3, bs:4, s:3, ap:0, d:1, tags:[] }, // BS is WS
+                    power_weapon: { name: "Power Weapon", range:0, a:3, bs:4, s:4, ap:2, d:1, tags:[] },
+                    hallowed_mace: { name: "Hallowed Mace", range:0, a:3, bs:3, s:4, ap:1, d:2, tags:["Lethal Hits"] },
+                    anointed_halberd: { name: "Anointed Halberd", range:0, a:3, bs:3, s:5, ap:2, d:1, tags:["Sustained Hits 1"] },
+                    penitent_eviscerator: { name: "Penitent Eviscerator", range:0, a:2, bs:4, s:6, ap:2, d:2, tags:["Sustained Hits 1"] },
+                    arco_flails: { name: "Arco-flails", range:0, a:4, bs:4, s:5, ap:0, d:1, tags:["Sustained Hits 1"] },
+                    paragon_mace: { name: "Paragon War Mace", range:0, a:3, bs:3, s:12, ap:1, d:3, tags:[] },
+                    paragon_blade: { name: "Paragon War Blade", range:0, a:4, bs:3, s:8, ap:2, d:2, tags:[] }
                 },
-                // Unit Composition Definitions
+
                 units: {
-                    retributors: { 
-                        name: "Retributor Squad", points: 105, t:3, sv:3, inv:6, w:1, role:'hammer', legalLeaders: ['palatine', 'canoness', 'dialogus', 'imagifier', 'hospitaller'],
-                        composition: [
-                            { name: "Retributor", count: 4, weapon: "multi_melta" },
-                            { name: "Superior", count: 1, weapon: "combi_weapon" }
+                    bss: { 
+                        name: "Battle Sisters Squad", points: 105, role: 'anvil', t:3, sv:3, inv:6, w:1,
+                        legalLeaders: ['palatine', 'canoness', 'imagifier', 'hospitaller', 'dialogus', 'junith'],
+                        loadoutOptions: [
+                            { name: "Sister Superior", count: 1, options: ['boltgun', 'condemnor'] },
+                            { name: "Regular Sisters", count: 7, options: ['boltgun'] },
+                            { name: "Special Weapon", count: 1, options: ['boltgun', 'meltagun', 'ministorum_flamer'] },
+                            { name: "Heavy Weapon", count: 1, options: ['boltgun', 'multi_melta', 'heavy_bolter', 'ministorum_heavy_flamer'] }
                         ]
                     },
-                    castigator: { 
-                        name: "Castigator", points: 140, t:10, sv:3, inv:6, w:11, role:'hammer', legalLeaders: [],
-                        composition: [
-                            { name: "Tank Commander", count: 1, weapon: "battle_cannon" }
+                    retributors: {
+                        name: "Retributor Squad", points: 120, role: 'hammer', t:3, sv:3, inv:6, w:1,
+                        legalLeaders: ['palatine', 'canoness', 'dialogus', 'hospitaller', 'imagifier', 'junith'],
+                        loadoutOptions: [
+                            { name: "Retributor Superior", count: 1, options: ['boltgun', 'condemnor'] },
+                            { name: "Heavy Weapons", count: 4, options: ['multi_melta', 'heavy_bolter', 'ministorum_heavy_flamer'] }
                         ]
                     },
-                    dominions: { 
-                        name: "Dominion Squad", points: 100, t:3, sv:3, inv:6, w:1, role:'scout', legalLeaders: ['palatine', 'canoness', 'imagifier', 'hospitaller'],
-                        composition: [
-                            { name: "Dominion", count: 4, weapon: "meltagun" },
-                            { name: "Dominion", count: 5, weapon: "bolter" },
-                            { name: "Superior", count: 1, weapon: "bolt_pistol" }
+                    dominions: {
+                        name: "Dominion Squad", points: 100, role: 'scout', t:3, sv:3, inv:6, w:1,
+                        legalLeaders: ['palatine', 'canoness', 'imagifier'],
+                        loadoutOptions: [
+                            { name: "Superior", count: 1, options: ['boltgun'] },
+                            { name: "Special Weapons", count: 4, options: ['meltagun', 'ministorum_flamer', 'artificer_storm_bolter'] },
+                            { name: "Regulars", count: 5, options: ['boltgun'] }
                         ]
                     },
-                    seraphim: { 
-                        name: "Seraphim Squad", points: 85, t:3, sv:3, inv:5, w:1, role:'scout', legalLeaders: ['canoness_jump', 'celestine'],
-                        composition: [
-                            { name: "Seraphim", count: 4, weapon: "hand_flamer" }, 
-                            { name: "Superior", count: 1, weapon: "bolt_pistol" }
+                    paragons: {
+                        name: "Paragon Warsuits", points: 210, role: 'hammer', t:7, sv:2, inv:4, w:4,
+                        legalLeaders: ['vahl'],
+                        loadoutOptions: [
+                            { name: "Paragon Superior", count: 1, options: ['paragon_melta'] }, // Simplified
+                            { name: "Paragons", count: 2, options: ['paragon_melta'] }
                         ]
                     },
-                    paragons: { 
-                        name: "Paragon Warsuits", points: 170, t:7, sv:2, inv:4, w:4, role:'hammer', legalLeaders: ['vahl'],
-                        composition: [
-                            { name: "Paragon", count: 3, weapon: "multi_melta" },
-                            { name: "Paragon Melee", count: 3, weapon: "paragon_mace" }
+                    castigator: {
+                        name: "Castigator", points: 140, role: 'hammer', t:10, sv:3, inv:6, w:11,
+                        legalLeaders: [],
+                        loadoutOptions: [
+                            { name: "Main Gun", count: 1, options: ['castigator_battle_cannon', 'castigator_autocannons'] },
+                            { name: "Sponsons", count: 3, options: ['heavy_bolter'] }
                         ]
                     },
-                    repentia: { 
-                        name: "Repentia Squad", points: 110, t:3, sv:7, inv:6, w:1, role:'hammer', legalLeaders: [],
-                        composition: [
-                            { name: "Repentia", count: 10, weapon: "eviscerator" }
+                    repentia: {
+                        name: "Repentia Squad", points: 110, role: 'hammer', t:3, sv:7, inv:6, w:1,
+                        legalLeaders: [],
+                        loadoutOptions: [
+                            { name: "Repentia", count: 10, options: ['penitent_eviscerator'] }
                         ]
                     }
                 },
+
                 leaders: {
                     none: { name: "No Leader", points: 0, buffs: [] },
                     palatine: { name: "Palatine", points: 50, buffs: ["lethal_hits"] },
                     canoness: { name: "Canoness", points: 50, buffs: ["reroll_1_hit"] },
                     vahl: { name: "Morvenn Vahl", points: 145, buffs: ["full_rerolls"] },
                     dialogus: { name: "Dialogus", points: 30, buffs: ["auto_6_md"] },
-                    canoness_jump: { name: "Canoness (Jump)", points: 75, buffs: ["reroll_hits"] },
-                    imagifier: { name: "Imagifier", points: 35, buffs: ["2+_save", "reroll_md"] },
-                    hospitaller: { name: "Hospitaller", points: 35, buffs: ["fnp_5"] },
-                    celestine: { name: "Saint Celestine", points: 150, buffs: ["4+_invuln", "resurrection"] }
+                    junith: { name: "Junith Eruita", points: 90, buffs: ["minus_1_to_hit"] }
                 },
-                enhancements: {
-                    none: { name: "None", points: 0 },
-                    fire_fury: { name: "Fire and Fury", points: 20, detachment: "bringers_of_flame", buff: "plus_1_atk_torrent" },
-                    blade_ellynor: { name: "Blade of St Ellynor", points: 15, detachment: "hallowed_martyrs", buff: "stat_boost" },
-                    litanies: { name: "Litanies of Faith", points: 10, detachment: "army_of_faith", buff: "reroll_md" }
-                },
+
                 targets: {
-                    knight: { t:12, sv:2, inv:5, w:22, models:1 },
-                    rhino: { t:9, sv:3, inv:7, w:10, models:1 },
-                    terminator: { t:6, sv:2, inv:4, w:3, models:5 },
-                    marine: { t:4, sv:3, inv:7, w:2, models:5 },
-                    horde: { t:3, sv:5, inv:7, w:1, models:20 }
+                    knight: { name: "Imperial Knight", t:12, sv:2, inv:5, w:22, models:1 },
+                    rhino: { name: "Rhino", t:9, sv:3, inv:7, w:10, models:1 },
+                    terminator: { name: "Terminators", t:5, sv:2, inv:4, w:3, models:5 },
+                    marine: { name: "Marines (MEQ)", t:4, sv:3, inv:7, w:2, models:10 },
+                    horde: { name: "Horde (GEQ)", t:3, sv:5, inv:7, w:1, models:20 }
                 }
             };
 
-            // --- 2. STATE ---
             const global = reactive({ detachment: 'bringers_of_flame', mdPool: 2 });
-            const selection = reactive({ unitKey: 'retributors', leaderKey: 'none', enhancementKey: 'none' });
-            const context = reactive({ closeRange: true, stationary: false, belowHalf: false });
+            const selection = reactive({ unitKey: 'retributors', leaderKey: 'none', loadout: {} });
+            const context = reactive({ halfRange: true, stationary: false, belowHalf: false });
             const targetKey = ref('knight');
             const results = ref(null);
 
-            // --- 3. HELPERS ---
+            // Init Loadout
+            const initLoadout = () => {
+                const u = db.units[selection.unitKey];
+                u.loadoutOptions.forEach((slot, i) => {
+                    selection.loadout[i] = slot.options[0];
+                });
+            };
+            initLoadout();
+
             const currentUnit = computed(() => db.units[selection.unitKey]);
             const currentLeader = computed(() => db.leaders[selection.leaderKey]);
             const activeTarget = computed(() => db.targets[targetKey.value]);
-            
+
             const validLeaders = computed(() => {
                 const allowed = currentUnit.value.legalLeaders;
                 return Object.fromEntries(Object.entries(db.leaders).filter(([k,v]) => k === 'none' || allowed.includes(k)));
             });
 
-            const validEnhancements = computed(() => {
-                return Object.fromEntries(
-                    Object.entries(db.enhancements).filter(([key, val]) => 
-                        key === 'none' || val.detachment === global.detachment
-                    )
-                );
-            });
-
-            // --- 4. THE COMPILER ---
-            // Takes the Unit Composition and returns an array of Modified Weapon Profiles
-            const compiledLoadout = computed(() => {
+            // --- COMPILER ENGINE ---
+            const compiledVolley = computed(() => {
                 const u = currentUnit.value;
                 const l = currentLeader.value;
-                let loadout = [];
+                let volley = [];
 
-                u.composition.forEach(model => {
-                    const baseProfile = db.profiles[model.weapon];
-                    
-                    let p = {
-                        ...baseProfile,
-                        name: model.name + " (" + baseProfile.name + ")",
-                        count: model.count,
-                        profileId: model.weapon,
-                        tags: [...baseProfile.tags],
-                        rules: [],
-                        buffs: [],
-                        extraAttacks: 0
+                u.loadoutOptions.forEach((slot, i) => {
+                    const profileKey = selection.loadout[i];
+                    const base = db.profiles[profileKey];
+                    if(!base) return;
+
+                    let w = {
+                        ...base,
+                        id: profileKey,
+                        count: slot.count,
+                        displayName: base.name,
+                        tags: [...base.tags],
+                        rules: []
                     };
 
-                    // 1. UNIT STATE
-                    if (p.tags.includes('Heavy') && context.stationary) {
-                        p.rules.push('plus_1_hit');
-                        p.buffs.push('Heavy (+1 Hit)');
-                    }
+                    // 1. RULES INTERACTIONS
+                    // Heavy + Stationary
+                    if (w.tags.includes('Heavy') && context.stationary) w.rules.push('plus_1_hit');
+                    
+                    // Rapid Fire + Half Range
+                    if (w.tags.includes('Rapid Fire 1') && context.halfRange) w.a += 1;
+                    if (w.tags.includes('Rapid Fire 2') && context.halfRange) w.a += 2;
+                    if (w.tags.includes('Rapid Fire 4') && context.halfRange) w.a += 4;
 
                     // 2. DETACHMENT RULES
                     if (global.detachment === 'bringers_of_flame') {
-                        if (context.closeRange && (p.tags.includes('Assault') || !p.tags.includes('Heavy'))) { 
-                             p.s += 1;
-                             p.buffs.push('Bringers (+1 S)');
-                        }
-                        if (!p.tags.includes('Assault') && !p.tags.includes('Melee')) {
-                            p.tags.push('Assault');
+                        // "Assault" rule: If <12" add +1 S
+                        if (context.halfRange && (w.tags.includes('Assault') || !w.tags.includes('Heavy'))) {
+                            w.s += 1;
                         }
                     }
-                    if (global.detachment === 'hallowed_martyrs') {
-                        if (context.belowHalf) {
-                            p.rules.push('plus_1_hit');
-                            p.buffs.push('Martyr (+1 Hit)');
-                        }
+                    if (global.detachment === 'hallowed_martyrs' && context.belowHalf) {
+                        w.rules.push('plus_1_hit');
                     }
 
                     // 3. LEADER BUFFS
-                    if (l.buffs.includes('lethal_hits')) {
-                        p.tags.push('Lethal Hits');
-                        p.buffs.push('Palatine (Lethal)');
-                    }
-                    if (l.buffs.includes('reroll_1_hit')) {
-                        p.rules.push('reroll_1_hit');
-                        p.buffs.push('Canoness (RR 1s)');
-                    }
-                    if (l.buffs.includes('full_rerolls')) {
-                        p.rules.push('reroll_hits', 'reroll_wounds');
-                        p.buffs.push('Vahl (Full RR)');
-                    }
+                    if (l.buffs.includes('lethal_hits')) w.tags.push('Lethal Hits');
+                    if (l.buffs.includes('full_rerolls')) w.rules.push('reroll_hits', 'reroll_wounds');
+                    if (l.buffs.includes('reroll_1_hit')) w.rules.push('reroll_1_hit');
 
-                    // 4. ENHANCEMENT LOGIC
-                    if (selection.enhancementKey === 'fire_fury' && p.tags.includes('Torrent')) {
-                        p.buffs.push('Fire & Fury (+1 Atk)');
-                        p.extraAttacks = 1;
-                    }
-                    if (selection.enhancementKey === 'blade_ellynor' && model.name.includes('Superior')) {
-                        p.s += 1;
-                        p.ap += 1; // Better AP
-                        p.d = (typeof p.d === 'number') ? p.d + 1 : p.d + "+1"; 
-                        p.buffs.push('Blade (+1 S/AP/D)');
-                    }
-
-                    loadout.push(p);
+                    volley.push(w);
                 });
-
-                return loadout;
+                return volley;
             });
 
-            // --- 5. ADVICE ENGINE ---
+            // --- ANALYSIS SCORES ---
             const scores = computed(() => {
-                // Heuristic scoring for the UI bars
-                const map = { hammer: {at:60, ah:30, anvil:20}, scout: {at:20, ah:50, anvil:10}, anvil: {at:20, ah:30, anvil:90} };
-                const role = currentUnit.value.role;
-                const vals = map[role];
-                // Adjust based on Leader
-                let mod = selection.leaderKey !== 'none' ? 10 : 0;
+                let at = 0, ah = 0, anvil = 0;
+                // Simple heuristic scoring based on loadout
+                compiledVolley.value.forEach(w => {
+                    if (w.s >= 9) at += (w.count * 10);
+                    if (w.tags.includes('Torrent') || w.tags.includes('Blast')) ah += (w.count * 8);
+                });
+                if (currentUnit.value.t >= 7) anvil += 40;
+                if (currentUnit.value.inv <= 4) anvil += 30;
+                
                 return {
-                    'Anti-Tank': { score: vals.at + mod, color: 'bg-red-500' },
-                    'Anti-Horde': { score: vals.ah + mod, color: 'bg-emerald-500' },
-                    'Anvil': { score: vals.anvil + mod, color: 'bg-blue-500' }
+                    'Anti-Tank': { val: Math.min(at, 100), color: 'bg-red-500' },
+                    'Anti-Horde': { val: Math.min(ah, 100), color: 'bg-emerald-500' },
+                    'Durability': { val: Math.min(anvil, 100), color: 'bg-blue-500' }
                 };
             });
 
-            const advice = computed(() => {
-                let msgs = [];
-                // Check Non-bo
-                const hasTorrent = compiledLoadout.value.some(w => w.tags.includes('Torrent'));
+            const warnings = computed(() => {
+                let w = [];
+                const hasTorrent = compiledVolley.value.some(wp => wp.tags.includes('Torrent'));
                 if (currentLeader.value.buffs.includes('lethal_hits') && hasTorrent) {
-                    msgs.push({type:'warn', msg: "Synergy Fail: Palatine [Lethal Hits] does not trigger on Torrent weapons (auto-hit)."});
+                    w.push({type:'warn', msg: "Synergy Warning: Palatine (Lethal Hits) does not work with Torrent weapons."});
                 }
-                if (global.mdPool < 2 && selection.unitKey === 'retributors') {
-                    msgs.push({type:'warn', msg: "Economy: Retributors require Miracle Dice to guarantee high damage output."});
-                }
-                if (selection.enhancementKey !== 'none' && !validEnhancements.value[selection.enhancementKey]) {
-                     msgs.push({type:'warn', msg: "Illegal: Selected Enhancement not allowed in this Detachment."});
-                }
-                return msgs;
+                return w;
             });
 
-            // --- 6. ADVANCED SIMULATION ENGINE ---
+            // --- SIMULATOR ---
             const parseD6 = (val) => {
                 if (typeof val === 'number') return val;
-                // Handle 2d6, d6+3, etc.
-                let multiplier = 1;
-                if (val.includes('d6')) {
-                    if (val[0] !== 'd') multiplier = parseInt(val[0]);
-                    let add = val.includes('+') ? parseInt(val.split('+')[1]) : 0;
-                    let total = 0;
-                    for(let i=0; i<multiplier; i++) total += Math.floor(Math.random()*6)+1;
-                    return total + add;
-                }
+                if (val === 'd6') return Math.floor(Math.random()*6)+1;
+                if (val.includes('d6+')) return Math.floor(Math.random()*6)+1 + parseInt(val.split('+')[1]);
                 return 1;
-            };
+            }
 
-            const runDetailedSim = () => {
+            const runSimulation = () => {
                 const iterations = 5000;
                 const target = activeTarget.value;
-                const squad = compiledLoadout.value;
-                
                 let totalDmg = 0;
                 let kills = 0;
-                let overkillCount = 0;
 
                 for(let i=0; i<iterations; i++) {
                     let runDmg = 0;
                     let currentMD = global.mdPool;
 
-                    // Loop through every profile in the squad
-                    for(let wpn of squad) {
+                    for (let wpn of compiledVolley.value) {
                         
-                        const isSustained = wpn.tags.find(t => t.startsWith('Sustained'));
-                        const susVal = isSustained ? 1 : 0; 
-                        const isLethal = wpn.tags.includes('Lethal Hits');
-                        const isDev = wpn.tags.includes('Devastating Wounds');
-                        const isTwin = wpn.tags.includes('Twin-Linked');
-                        const isTorrent = wpn.tags.includes('Torrent');
-
-                        // Blast Logic based on Models
+                        // Blast Logic
                         let blastBonus = 0;
                         if(wpn.tags.includes('Blast')) blastBonus = Math.floor(target.models / 5);
 
-                        let numShots = 0;
-                        for(let m=0; m<wpn.count; m++) {
-                            numShots += parseD6(wpn.a) + blastBonus + (wpn.extraAttacks || 0);
+                        let shots = 0;
+                        for(let c=0; c<wpn.count; c++) shots += parseD6(wpn.a) + blastBonus;
+
+                        // Keywords
+                        const isLethal = wpn.tags.includes('Lethal Hits');
+                        const isSustained = wpn.tags.some(t => t.includes('Sustained'));
+                        const isDev = wpn.tags.includes('Devastating Wounds');
+                        const isTorrent = wpn.tags.includes('Torrent');
+                        const isTwin = wpn.tags.includes('Twin-Linked');
+                        
+                        // Anti-X Logic
+                        let critWoundReq = 6;
+                        if(wpn.tags.some(t => t.includes('Anti-'))) {
+                            // Simplified for MVP: Assume Anti-X triggers on 4+ if present
+                            critWoundReq = 4;
                         }
 
-                        for(let s=0; s<numShots; s++) {
-                            // 1. HIT ROLL
+                        for(let s=0; s<shots; s++) {
+                            // 1. HIT
                             let hit = false;
-                            let crit = false; 
-
-                            if(isTorrent) {
+                            let critHit = false;
+                            
+                            if (isTorrent) {
                                 hit = true;
                             } else {
-                                let roll = Math.floor(Math.random()*6)+1;
-                                if(wpn.rules.includes('plus_1_hit')) roll = Math.min(6, roll+1);
+                                let r = Math.floor(Math.random()*6)+1;
+                                // Mods
+                                if(wpn.rules.includes('plus_1_hit')) r = Math.min(6, r+1);
                                 // Rerolls
-                                if(roll < wpn.bs && (wpn.rules.includes('reroll_hits') || wpn.rules.includes('reroll_1_hit') && roll === 1 || isTwin)) {
-                                    roll = Math.floor(Math.random()*6)+1;
-                                    if(wpn.rules.includes('plus_1_hit')) roll = Math.min(6, roll+1);
+                                if(r < wpn.bs && (wpn.rules.includes('reroll_hits') || wpn.rules.includes('reroll_1_hit') && r===1 || isTwin)) {
+                                    r = Math.floor(Math.random()*6)+1;
+                                    if(wpn.rules.includes('plus_1_hit')) r = Math.min(6, r+1);
                                 }
-
-                                if(roll >= 6) { hit = true; crit = true; }
-                                else if(roll >= wpn.bs) hit = true;
+                                if(r >= 6) critHit = true;
+                                if(r >= wpn.bs || critHit) hit = true;
                             }
 
-                            let hits = hit ? 1 : 0;
-                            if(crit && isSustained) hits += susVal;
+                            if(!hit) continue;
 
-                            if(hits === 0) continue;
+                            let hits = 1;
+                            if(critHit && isSustained) hits++;
 
-                            // Loop Hits
+                            // 2. WOUND
                             for(let h=0; h<hits; h++) {
                                 let wound = false;
                                 let skipSave = false;
 
-                                // Lethal Logic: Auto-Wound on Crit Hit. 
-                                // CORE RULE: Auto-wound does NOT trigger Dev Wounds (which needs Crit Wound Roll)
-                                if(crit && isLethal && h===0 && !isTorrent) {
-                                    wound = true; 
+                                // Lethal skips wound roll. DOES NOT TRIGGER DEV WOUNDS.
+                                if(critHit && isLethal && h===0 && !isTorrent) {
+                                    wound = true;
                                 } else {
-                                    // 2. WOUND ROLL
-                                    let wRoll = Math.floor(Math.random()*6)+1;
+                                    let wr = Math.floor(Math.random()*6)+1;
                                     
+                                    // S vs T
                                     let req = 4;
                                     if(wpn.s >= target.t*2) req=2;
                                     else if(wpn.s > target.t) req=3;
@@ -661,37 +530,34 @@
                                     if(wpn.rules.includes('plus_1_wound')) req = Math.max(2, req-1);
 
                                     // Rerolls
-                                    if(wRoll < req && (wpn.rules.includes('reroll_wounds') || isTwin)) wRoll = Math.floor(Math.random()*6)+1;
+                                    if(wr < req && (wpn.rules.includes('reroll_wounds') || isTwin)) wr = Math.floor(Math.random()*6)+1;
 
-                                    if(wRoll >= 6 && isDev) { wound = true; skipSave = true; }
-                                    else if(wRoll >= req) wound = true;
+                                    if(wr >= critWoundReq && isDev) { wound = true; skipSave = true; }
+                                    else if(wr >= req) wound = true;
                                 }
 
                                 if(!wound) continue;
 
-                                // 3. SAVE ROLL
-                                let damageDealt = 0;
-                                
-                                if(!skipSave) {
-                                    let svRoll = Math.floor(Math.random()*6)+1;
-                                    let apVal = wpn.ap; // AP is positive in DB, so 4 = -4
-                                    let svReq = target.sv + apVal;
-                                    // Invuln
-                                    let bestSave = (target.inv < 7 && target.inv < svReq) ? target.inv : svReq;
-                                    
-                                    if(svRoll < bestSave) {
-                                        damageDealt = 1; 
-                                    }
+                                // 3. SAVE
+                                let dmgDealt = 0;
+                                if(skipSave) {
+                                    dmgDealt = 1;
                                 } else {
-                                    damageDealt = 1; // Dev Wounds passed
+                                    let sr = Math.floor(Math.random()*6)+1;
+                                    let ap = wpn.ap; // XML AP is positive (4 = -4)
+                                    // Cover? Simplified: No cover in MVP
+                                    let reqSv = target.sv + ap;
+                                    let best = (target.inv < 7 && target.inv < reqSv) ? target.inv : reqSv;
+                                    
+                                    if(sr < best) dmgDealt = 1;
                                 }
 
-                                // 4. DAMAGE CALC
-                                if(damageDealt > 0) {
+                                // 4. DAMAGE
+                                if(dmgDealt) {
                                     let val = 0;
                                     if(typeof wpn.d === 'string') {
-                                        // Miracle Dice Dialogus Logic
-                                        if(selection.leaderKey === 'dialogus' && currentMD > 0) {
+                                        // Miracle Dice?
+                                        if(currentMD > 0 && selection.leaderKey === 'dialogus') {
                                             val = 6;
                                             currentMD--;
                                         } else {
@@ -700,40 +566,30 @@
                                     } else {
                                         val = wpn.d;
                                     }
-                                    
-                                    if(wpn.melta && context.closeRange) val += wpn.melta;
-
+                                    if(wpn.melta && context.halfRange) val += wpn.melta;
                                     runDmg += val;
                                 }
                             }
                         }
                     }
-
                     if(runDmg >= target.w) kills++;
-                    if(runDmg > target.w * 1.5) overkillCount++;
                     totalDmg += runDmg;
                 }
 
                 results.value = {
-                    avgDamage: (totalDmg / iterations).toFixed(1),
-                    killChance: ((kills / iterations) * 100).toFixed(0),
-                    efficiency: "Top Tier",
-                    efficiencyPts: ((totalDmg / iterations) / currentUnit.value.points * 100).toFixed(1),
-                    overkill: ((overkillCount / iterations) * 100).toFixed(0)
+                    avg: (totalDmg / iterations).toFixed(1),
+                    pKill: ((kills / iterations) * 100).toFixed(0),
+                    eff: ((totalDmg/iterations) / currentUnit.value.points * 10).toFixed(1)
                 };
             };
 
-            const resetSelection = () => {
-                selection.leaderKey = 'none';
-                selection.enhancementKey = 'none';
-                results.value = null;
-            };
+            const resetWargear = () => { initLoadout(); results.value = null; };
 
-            return { 
+            return {
                 db, global, selection, context, targetKey,
-                validLeaders, validEnhancements, compiledLoadout, activeTarget,
-                scores, advice, results,
-                runDetailedSim, resetSelection
+                currentUnit, validLeaders, compiledVolley, activeTarget,
+                scores, warnings, results,
+                runSimulation, resetWargear
             };
         }
     }).mount('#app');
