@@ -3,515 +3,695 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sororitas Tactica // Army Architect</title>
-    
-    <!-- LIBRARIES -->
+    <title>Sororitas Tactica // Definitive Edition</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
     <style>
-        body { background-color: #0f172a; color: #cbd5e1; font-family: 'Inter', sans-serif; overflow-y: scroll; }
-        .panel { background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; transition: all 0.2s; }
-        .input-dark { background-color: #020617; border: 1px solid #475569; color: white; padding: 0.5rem; border-radius: 0.25rem; width: 100%; font-size: 0.85rem; }
+        body { background-color: #020617; color: #cbd5e1; font-family: 'Inter', sans-serif; font-size: 13px; }
+        .panel { background-color: #0f172a; border: 1px solid #1e293b; border-radius: 0.5rem; }
+        .input-dark { background-color: #1e293b; border: 1px solid #334155; color: white; padding: 0.4rem; border-radius: 0.25rem; width: 100%; font-size: 0.8rem; }
         .btn-gold { background: linear-gradient(135deg, #b45309 0%, #d97706 100%); color: white; font-weight: 700; }
-        .btn-gold:hover { filter: brightness(110%); transform: translateY(-1px); }
-        .btn-slate { background-color: #334155; color: white; font-weight: 600; }
-        .btn-slate:hover { background-color: #475569; }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
-        
-        .roster-item { transition: all 0.2s; border-left: 3px solid transparent; }
-        .roster-item:hover { background-color: #1e293b; border-left-color: #d97706; }
-        .roster-item.active { background-color: #1e293b; border-left-color: #d97706; border-top: 1px solid #334155; border-bottom: 1px solid #334155; }
+        .btn-gold:hover { filter: brightness(110%); }
+        .tag { font-size: 0.65rem; padding: 1px 4px; border-radius: 3px; font-weight: 700; text-transform: uppercase; margin-right: 3px; border: 1px solid transparent; }
+        .tag-melta { border-color: #7f1d1d; color: #fecaca; background: #450a0a; }
+        .tag-torrent { border-color: #7c2d12; color: #fed7aa; background: #431407; }
+        .tag-heavy { border-color: #1e3a8a; color: #bfdbfe; background: #172554; }
+        .tag-melee { border-color: #581c87; color: #e9d5ff; background: #3b0764; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
     </style>
 </head>
-<body class="p-0 h-screen flex flex-col overflow-hidden">
+<body class="h-screen flex flex-col overflow-hidden">
 
 <div id="app" class="flex flex-col h-full">
 
-    <!-- TOP BAR: ARMY STATS -->
-    <header class="bg-slate-900 border-b border-slate-700 p-4 flex justify-between items-center shadow-lg z-10 h-16 shrink-0">
-        <div class="flex items-center gap-4">
-            <h1 class="text-xl font-black text-amber-500 tracking-tight uppercase hidden md:block">Sororitas Tactica</h1>
+    <!-- HEADER -->
+    <header class="bg-slate-900 border-b border-slate-800 p-3 flex justify-between items-center z-20 shadow-md">
+        <div class="flex items-center gap-3">
+            <i class="ph-fill ph-sword text-3xl text-amber-500"></i>
+            <div>
+                <h1 class="text-lg font-black text-amber-500 tracking-tight uppercase leading-none">Sororitas Tactica</h1>
+                <div class="text-[10px] text-slate-500 font-mono mt-0.5">DB: Warhammer 40k 10th Ed // MFM 1.4</div>
+            </div>
             
-            <!-- Points Tracker -->
-            <div class="flex items-center gap-3 bg-slate-800 px-3 py-1 rounded border border-slate-700">
-                <i class="ph-fill ph-trophy text-amber-500"></i>
-                <div class="flex items-baseline gap-1">
-                    <span class="text-xl font-bold text-white">{{ totalPoints }}</span>
-                    <span class="text-xs text-slate-400">/ {{ pointsLimit }} pts</span>
+            <div class="h-8 w-px bg-slate-700 mx-2"></div>
+            
+            <!-- Global Config -->
+            <div class="flex gap-2">
+                <div>
+                    <label class="text-[9px] uppercase font-bold text-slate-500 block">Detachment</label>
+                    <select v-model="global.detachment" class="bg-slate-800 border border-slate-700 text-[11px] text-amber-500 font-bold rounded p-1">
+                        <option value="bringers_of_flame">Bringers of Flame</option>
+                        <option value="hallowed_martyrs">Hallowed Martyrs</option>
+                        <option value="penitent_host">Penitent Host</option>
+                        <option value="army_of_faith">Army of Faith</option>
+                    </select>
+                </div>
+                 <!-- Penitent Vow Selector -->
+                <div v-if="global.detachment === 'penitent_host'">
+                    <label class="text-[9px] uppercase font-bold text-slate-500 block">Active Vow</label>
+                    <select v-model="global.penitentVow" class="bg-slate-800 border border-slate-700 text-[11px] text-red-400 font-bold rounded p-1">
+                        <option value="movement">Path of Penitent (+3" Move)</option>
+                        <option value="assault">Absolution (+1 A/S)</option>
+                        <option value="defense">Death Before Disgrace (Fight on Death)</option>
+                    </select>
                 </div>
             </div>
-
-            <!-- Global Detachment -->
-            <select v-model="global.detachment" class="bg-slate-800 border border-slate-700 text-xs text-slate-300 rounded p-1.5 font-bold">
-                <option value="bringers_of_flame">Bringers of Flame</option>
-                <option value="hallowed_martyrs">Hallowed Martyrs</option>
-                <option value="penitent_host">Penitent Host</option>
-                <option value="army_of_faith">Army of Faith</option>
-            </select>
         </div>
 
-        <!-- Equilibrium Bars (Mini) -->
-        <div class="flex gap-4 w-1/3">
-            <div class="w-full">
-                <div class="flex justify-between text-[10px] text-slate-400 font-bold mb-0.5">
-                    <span>AT</span>
-                    <span>{{ Math.round(armyScores.at) }}%</span>
-                </div>
-                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div class="h-full bg-red-500 transition-all duration-500" :style="{width: Math.min(armyScores.at, 100)+'%'}"></div>
-                </div>
-            </div>
-            <div class="w-full">
-                <div class="flex justify-between text-[10px] text-slate-400 font-bold mb-0.5">
-                    <span>Horde</span>
-                    <span>{{ Math.round(armyScores.ah) }}%</span>
-                </div>
-                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div class="h-full bg-emerald-500 transition-all duration-500" :style="{width: Math.min(armyScores.ah, 100)+'%'}"></div>
-                </div>
-            </div>
-             <div class="w-full">
-                <div class="flex justify-between text-[10px] text-slate-400 font-bold mb-0.5">
-                    <span>Score</span>
-                    <span>{{ Math.round(armyScores.scoring) }}%</span>
-                </div>
-                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div class="h-full bg-blue-500 transition-all duration-500" :style="{width: Math.min(armyScores.scoring, 100)+'%'}"></div>
-                </div>
+        <div class="flex items-center gap-4">
+             <div class="text-right">
+                <div class="text-[9px] uppercase font-bold text-slate-500">Points</div>
+                <div class="text-xl font-bold text-white leading-none">{{ totalPoints }} <span class="text-xs text-slate-600">/ 2000</span></div>
             </div>
         </div>
     </header>
 
-    <!-- MAIN WORKSPACE -->
+    <!-- WORKSPACE -->
     <div class="flex flex-1 overflow-hidden">
-        
-        <!-- LEFT: ROSTER (The Army List) -->
-        <div class="w-1/4 min-w-[300px] bg-slate-950 border-r border-slate-800 flex flex-col">
-            <div class="p-3 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
-                <span class="text-xs font-bold text-slate-500 uppercase">Current Roster ({{ roster.length }})</span>
-                <button @click="clearRoster" class="text-[10px] text-red-400 hover:text-red-300">Clear All</button>
+
+        <!-- 1. ROSTER (Left) -->
+        <div class="w-[320px] bg-slate-950 border-r border-slate-800 flex flex-col">
+            <div class="p-3 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+                <span class="text-xs font-bold text-slate-400 uppercase">Army Roster</span>
+                <button @click="roster = []" class="text-[10px] text-red-500 hover:text-red-400">Reset</button>
             </div>
-            
             <div class="flex-1 overflow-y-auto p-2 space-y-1">
-                <div v-if="roster.length === 0" class="text-center p-8 text-slate-600 italic text-sm">
-                    Your roster is empty.<br>Configure units in the center to add them.
+                <div v-if="roster.length === 0" class="p-8 text-center text-slate-700 text-xs italic border-2 border-dashed border-slate-800 rounded m-2">
+                    Start by configuring a unit in the workbench.
                 </div>
-
-                <div v-for="(entry, index) in roster" :key="entry.id" 
-                     class="roster-item p-3 rounded cursor-pointer group"
-                     :class="{'active': editIndex === index}"
-                     @click="editUnit(index)">
-                    
+                <div v-for="(entry, idx) in roster" :key="entry.id" 
+                     class="p-3 rounded border border-slate-800 bg-slate-900 hover:border-amber-700 cursor-pointer group relative"
+                     @click="editUnit(idx)">
                     <div class="flex justify-between items-start">
-                        <span class="font-bold text-sm text-slate-200">{{ entry.name }}</span>
-                        <span class="font-mono text-xs text-amber-500">{{ entry.points + (entry.enhancement ? db.enhancements[entry.enhancement].points : 0) }}pts</span>
+                        <div class="font-bold text-slate-200">{{ entry.name }}</div>
+                        <div class="font-mono text-amber-500">{{ getUnitPoints(entry) }}pts</div>
                     </div>
-                    
-                    <div class="text-[10px] text-slate-500 mt-1 flex flex-wrap gap-2">
-                        <span v-if="entry.leader !== 'none'" class="text-indigo-400">+ {{ db.leaders[entry.leader].name }}</span>
-                        <span v-if="entry.enhancement !== 'none'" class="text-purple-400">+ {{ db.enhancements[entry.enhancement].name }}</span>
+                    <div class="text-[10px] text-slate-500 mt-1" v-if="entry.leader !== 'none'">
+                        + {{ db.leaders[entry.leader].name }}
+                        <span v-if="entry.enhancement !== 'none'" class="text-purple-400">({{ db.enhancements[entry.enhancement].name }})</span>
                     </div>
-
-                    <!-- Mini Actions -->
-                    <div class="mt-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
-                        <button @click.stop="duplicateUnit(index)" class="text-xs text-slate-400 hover:text-white" title="Duplicate"><i class="ph-bold ph-copy"></i></button>
-                        <button @click.stop="removeUnit(index)" class="text-xs text-red-500 hover:text-red-400" title="Remove"><i class="ph-bold ph-trash"></i></button>
-                    </div>
+                    <button @click.stop="roster.splice(idx, 1)" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-400">
+                        <i class="ph-bold ph-trash"></i>
+                    </button>
                 </div>
             </div>
-
-            <!-- Aggregate Sim Button -->
-            <div class="p-4 border-t border-slate-800 bg-slate-900">
-                <button @click="simFullArmy" class="w-full btn-gold py-2 rounded text-sm shadow-lg shadow-amber-900/20 flex items-center justify-center gap-2">
-                    <i class="ph-fill ph-lightning"></i> Sim Full Army
+            <div class="p-3 border-t border-slate-800 bg-slate-900">
+                 <button @click="simArmy" class="w-full btn-gold py-2 rounded text-xs uppercase tracking-widest shadow-lg">
+                    Analyze Full Army
                 </button>
             </div>
         </div>
 
-        <!-- CENTER: WORKBENCH (Configuration) -->
-        <div class="flex-1 bg-slate-900 overflow-y-auto p-6">
-            <div class="max-w-3xl mx-auto space-y-6">
+        <!-- 2. WORKBENCH (Center) -->
+        <div class="flex-1 bg-slate-900 overflow-y-auto p-6 relative">
+            
+            <div class="max-w-4xl mx-auto grid grid-cols-2 gap-6">
                 
-                <!-- Unit Selector -->
-                <div class="panel p-5">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                            <i class="ph-fill ph-wrench text-amber-500"></i> Workbench
+                <!-- Unit Configuration -->
+                <div class="col-span-2 md:col-span-1 space-y-4">
+                    <div class="panel p-4">
+                        <h2 class="text-xs font-bold text-white uppercase mb-3 flex items-center gap-2">
+                            <i class="ph-fill ph-wrench text-amber-500"></i> Builder
                         </h2>
-                        <div v-if="editIndex !== null" class="text-xs bg-indigo-900 text-indigo-200 px-2 py-1 rounded">Editing Mode</div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-xs text-slate-500 font-bold uppercase mb-1 block">Unit</label>
-                            <select v-model="draft.unitKey" @change="resetDraftLoadout" class="input-dark">
-                                <option v-for="(u, key) in db.units" :value="key">{{ u.name }} ({{ u.points }}pts)</option>
-                            </select>
-                        </div>
-                        <div>
-                             <label class="text-xs text-slate-500 font-bold uppercase mb-1 block">Leader</label>
-                            <select v-model="draft.leaderKey" class="input-dark">
-                                <option value="none">No Leader</option>
-                                <option v-for="(l, key) in validDraftLeaders" :value="key">{{ l.name }} ({{ l.points }}pts)</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <!-- Enhancement -->
-                    <div class="mt-3" v-if="draft.leaderKey !== 'none'">
-                         <label class="text-xs text-slate-500 font-bold uppercase mb-1 block">Enhancement</label>
-                        <select v-model="draft.enhancementKey" class="input-dark">
-                            <option value="none">None</option>
-                            <option v-for="(e, key) in validEnhancements" :value="key">{{ e.name }} ({{ e.points }}pts)</option>
-                        </select>
-                    </div>
-
-                    <!-- Wargear -->
-                    <div class="mt-6 pt-4 border-t border-slate-700">
-                        <label class="text-xs text-slate-500 font-bold uppercase mb-3 block">Squad Wargear</label>
-                        <div v-for="(slot, idx) in draftUnitData.loadoutOptions" :key="idx" class="mb-3 grid grid-cols-12 gap-4 items-center">
-                            <div class="col-span-4 text-sm text-slate-300 font-medium">{{ slot.name }} <span class="text-slate-500">x{{slot.count}}</span></div>
-                            <div class="col-span-8">
-                                <select v-model="draft.loadout[idx]" class="input-dark text-xs">
-                                    <option v-for="opt in slot.options" :value="opt">{{ db.profiles[opt].name }}</option>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Unit Chassis</label>
+                                <select v-model="draft.unitKey" @change="resetDraft" class="input-dark">
+                                    <optgroup label="Characters">
+                                        <option v-for="u in sortedUnits.chars" :value="u.key">{{ u.name }} ({{u.points}})</option>
+                                    </optgroup>
+                                    <optgroup label="Battleline">
+                                         <option v-for="u in sortedUnits.battleline" :value="u.key">{{ u.name }} ({{u.points}})</option>
+                                    </optgroup>
+                                    <optgroup label="Infantry">
+                                         <option v-for="u in sortedUnits.infantry" :value="u.key">{{ u.name }} ({{u.points}})</option>
+                                    </optgroup>
+                                    <optgroup label="Vehicles/Walkers">
+                                         <option v-for="u in sortedUnits.vehicles" :value="u.key">{{ u.name }} ({{u.points}})</option>
+                                    </optgroup>
                                 </select>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Actions -->
-                    <div class="mt-6 flex gap-3">
-                        <button @click="commitToRoster" class="flex-1 btn-gold py-2.5 rounded text-sm shadow-lg">
-                            {{ editIndex !== null ? 'Update Unit' : 'Add to Roster' }}
-                        </button>
-                        <button v-if="editIndex !== null" @click="cancelEdit" class="px-4 btn-slate rounded">Cancel</button>
+                            <div v-if="draftUnit.legalLeaders.length > 0">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Attach Leader</label>
+                                <select v-model="draft.leaderKey" class="input-dark">
+                                    <option value="none">None</option>
+                                    <option v-for="key in draftUnit.legalLeaders" :value="key">
+                                        {{ db.leaders[key].name }} ({{ db.leaders[key].points }}pts)
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div v-if="draft.leaderKey !== 'none' || draftUnit.isChar">
+                                 <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Enhancement</label>
+                                 <select v-model="draft.enhancementKey" class="input-dark">
+                                     <option value="none">None</option>
+                                     <option v-for="(e, k) in validEnhancements" :value="k">{{ e.name }} ({{e.points}}pts)</option>
+                                 </select>
+                            </div>
+                        </div>
+
+                        <!-- Wargear Selector -->
+                        <div class="mt-4 pt-4 border-t border-slate-700">
+                             <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Wargear</label>
+                             <div v-for="(slot, idx) in draftUnit.loadoutOptions" :key="idx" class="mb-2">
+                                <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                                    <span>{{slot.name}}</span>
+                                    <span>x{{slot.count}}</span>
+                                </div>
+                                <select v-model="draft.loadout[idx]" class="input-dark text-[10px] py-1">
+                                    <option v-for="opt in slot.options" :value="opt">{{ db.profiles[opt].name }}</option>
+                                </select>
+                             </div>
+                        </div>
+
+                        <div class="mt-4 flex gap-2">
+                            <button @click="addToRoster" class="flex-1 btn-gold py-2 rounded text-xs uppercase tracking-wide">
+                                Add to List
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Context for Sim -->
-                <div class="panel p-5 bg-slate-950 border-slate-800">
-                    <h3 class="text-xs font-bold text-slate-500 uppercase mb-3">Simulation Context</h3>
-                    <div class="grid grid-cols-4 gap-2 mb-4">
-                        <button @click="context.halfRange = !context.halfRange" class="text-xs p-2 rounded border" :class="context.halfRange ? 'bg-amber-900/30 border-amber-600 text-amber-400' : 'bg-slate-900 border-slate-700 text-slate-500'">Range &lt; 12"</button>
-                        <button @click="context.stationary = !context.stationary" class="text-xs p-2 rounded border" :class="context.stationary ? 'bg-amber-900/30 border-amber-600 text-amber-400' : 'bg-slate-900 border-slate-700 text-slate-500'">Stationary</button>
-                        <button @click="context.belowHalf = !context.belowHalf" class="text-xs p-2 rounded border" :class="context.belowHalf ? 'bg-amber-900/30 border-amber-600 text-amber-400' : 'bg-slate-900 border-slate-700 text-slate-500'">Below Half</button>
-                    </div>
-                    
-                    <div class="bg-slate-900 p-3 rounded flex justify-between items-center">
-                        <div>
-                            <div class="text-[10px] text-slate-500 uppercase font-bold">Target</div>
-                            <select v-model="targetKey" class="bg-transparent text-sm font-bold text-white border-none focus:ring-0 p-0 cursor-pointer">
-                                <option v-for="(t, k) in db.targets" :value="k">{{ t.name }} (T{{t.t}} / {{t.sv}}+)</option>
+                <!-- Simulation Context -->
+                <div class="col-span-2 md:col-span-1 space-y-4">
+                    <div class="panel p-4 bg-slate-950 border-slate-800">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xs font-bold text-white uppercase flex items-center gap-2">
+                                <i class="ph-fill ph-crosshair text-red-500"></i> Simulation
+                            </h2>
+                            <select v-model="targetKey" class="bg-slate-900 border border-slate-700 text-[10px] rounded px-2 py-1 text-slate-300">
+                                <option v-for="(t, k) in db.targets" :value="k">{{ t.name }} (T{{t.t}})</option>
                             </select>
                         </div>
-                        <div class="text-right">
-                             <div class="text-[10px] text-slate-500 uppercase font-bold">Draft Efficiency</div>
-                             <div class="text-xl font-mono text-emerald-400">{{ draftSimResult }} <span class="text-xs text-slate-600">dmg</span></div>
+
+                        <!-- Toggles -->
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                             <button @click="context.halfRange = !context.halfRange" class="p-2 rounded border text-[10px] font-bold transition-all"
+                                :class="context.halfRange ? 'bg-amber-900/40 border-amber-600 text-amber-200' : 'bg-slate-900 border-slate-700 text-slate-500'">
+                                &lt; Half Range
+                             </button>
+                             <button @click="context.stationary = !context.stationary" class="p-2 rounded border text-[10px] font-bold transition-all"
+                                :class="context.stationary ? 'bg-amber-900/40 border-amber-600 text-amber-200' : 'bg-slate-900 border-slate-700 text-slate-500'">
+                                Stationary
+                             </button>
+                             <button @click="context.belowHalf = !context.belowHalf" class="p-2 rounded border text-[10px] font-bold transition-all"
+                                :class="context.belowHalf ? 'bg-red-900/40 border-red-600 text-red-200' : 'bg-slate-900 border-slate-700 text-slate-500'">
+                                Damaged (+1 Hit)
+                             </button>
+                             <div class="flex items-center justify-between px-2 bg-slate-900 border border-slate-700 rounded">
+                                 <span class="text-[10px] text-slate-500 font-bold">MD</span>
+                                 <input type="number" v-model="global.mdPool" class="w-8 bg-transparent text-white text-center font-bold">
+                             </div>
+                        </div>
+
+                        <!-- Volley Preview -->
+                        <div class="text-[10px] font-mono text-slate-500 mb-2 uppercase">Effective Volley</div>
+                        <div class="space-y-1 max-h-[200px] overflow-y-auto pr-1">
+                            <div v-for="wpn in compiledDraft" class="bg-slate-900 p-2 rounded border-l-2 border-slate-700 text-[10px]">
+                                <div class="flex justify-between text-slate-300 font-bold">
+                                    <span>{{ wpn.count }}x {{ wpn.displayName }}</span>
+                                    <span :class="{'text-emerald-400': wpn.bs < db.profiles[wpn.id].bs}">{{wpn.bs}}+</span>
+                                </div>
+                                <div class="flex gap-2 text-slate-500 mt-1 font-mono">
+                                    <span :class="{'text-emerald-400': wpn.s > db.profiles[wpn.id].s}">S{{wpn.s}}</span>
+                                    <span :class="{'text-emerald-400': wpn.ap > db.profiles[wpn.id].ap}">AP-{{wpn.ap}}</span>
+                                    <span :class="{'text-emerald-400': wpn.d !== db.profiles[wpn.id].d}">D{{wpn.d}}</span>
+                                </div>
+                                <div class="flex flex-wrap gap-1 mt-1">
+                                    <span v-for="tag in wpn.tags" class="tag" 
+                                        :class="{
+                                            'tag-melta': tag.includes('Melta'),
+                                            'tag-torrent': tag.includes('Torrent'),
+                                            'tag-heavy': tag.includes('Heavy'),
+                                            'tag-melee': tag.includes('Melee')
+                                        }">{{tag}}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sim Result -->
+                        <div class="mt-4 pt-4 border-t border-slate-800 flex justify-between items-end">
+                            <div>
+                                <div class="text-[10px] text-slate-500 uppercase font-bold">Exp. Damage</div>
+                                <div class="text-3xl font-black text-white leading-none">{{ draftSim.avg }}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-[10px] text-slate-500 uppercase font-bold">Kill Chance</div>
+                                <div class="text-xl font-bold" :class="draftSim.kill > 50 ? 'text-emerald-400' : 'text-rose-400'">{{ draftSim.kill }}%</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                
+            </div>
+
+        </div>
+
+        <!-- 3. ARMY ANALYTICS (Right) -->
+        <div class="w-[280px] bg-slate-950 border-l border-slate-800 p-4 flex flex-col gap-4">
+             <div class="panel p-4 bg-slate-900">
+                <h3 class="text-xs font-bold text-slate-400 uppercase mb-3">Army Equilibrium</h3>
+                
+                <div class="space-y-3">
+                    <div v-for="(score, key) in armyScores" :key="key">
+                        <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-1">
+                            <span>{{key}}</span>
+                            <span>{{score.val}}/{{score.target}}</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="h-full transition-all duration-500" :class="score.color" :style="{width: Math.min((score.val/score.target)*100, 100) + '%'}"></div>
                         </div>
                     </div>
                 </div>
-
             </div>
-        </div>
 
-        <!-- RIGHT: ANALYSIS (Aggregate) -->
-        <div class="w-1/4 min-w-[300px] bg-slate-950 border-l border-slate-800 p-4 flex flex-col gap-4">
-            
-            <!-- Full Army Report -->
-            <div class="panel p-4 bg-slate-900">
-                <h3 class="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center gap-2">
-                    <i class="ph-fill ph-chart-bar text-amber-500"></i> Army Performance
-                </h3>
-                
-                <div v-if="armySimResult" class="space-y-4">
-                    <div class="text-center py-2 bg-slate-950 rounded border border-slate-800">
-                        <div class="text-[10px] text-slate-500 uppercase">Total Alpha Strike</div>
-                        <div class="text-4xl font-black text-white tracking-tighter">{{ armySimResult.totalAvg }}</div>
-                        <div class="text-xs text-emerald-400">Damage vs {{ db.targets[targetKey].name }}</div>
-                    </div>
-
-                    <div class="space-y-2 max-h-[300px] overflow-y-auto">
-                         <div v-for="u in armySimResult.breakdown" class="text-xs flex justify-between border-b border-slate-800 pb-1">
-                            <span class="text-slate-400 truncate w-32">{{ u.name }}</span>
-                            <span class="font-mono text-white">{{ u.dmg }}</span>
-                         </div>
+             <div v-if="armySimResult" class="panel p-4 bg-slate-900 flex-1 overflow-hidden flex flex-col">
+                <h3 class="text-xs font-bold text-slate-400 uppercase mb-2">Alpha Strike Sim</h3>
+                <div class="text-center py-2 bg-slate-950 rounded border border-slate-800 mb-2">
+                    <div class="text-3xl font-black text-white">{{ armySimResult.total }}</div>
+                    <div class="text-[9px] text-slate-500">Total Wounds vs {{ db.targets[targetKey].name }}</div>
+                </div>
+                <div class="overflow-y-auto space-y-1 flex-1 pr-1">
+                    <div v-for="u in armySimResult.units" class="flex justify-between text-[10px] border-b border-slate-800 pb-1">
+                        <span class="text-slate-300 truncate w-32">{{u.name}}</span>
+                        <span class="font-mono text-emerald-400">{{u.dmg}}</span>
                     </div>
                 </div>
-                <div v-else class="text-xs text-slate-600 text-center py-4">
-                    Add units to roster and click "Sim Full Army"
-                </div>
-            </div>
-
-             <!-- Issues Log -->
-             <div class="panel p-4 bg-slate-900 flex-1">
-                <h3 class="text-xs font-bold text-slate-400 uppercase mb-3">Tactical Issues</h3>
-                <ul class="space-y-2">
-                    <li v-for="issue in armyIssues" class="text-[10px] p-2 rounded border-l-2 bg-slate-950 border-red-500 text-red-300">
-                        {{ issue }}
-                    </li>
-                    <li v-if="armyIssues.length === 0" class="text-[10px] text-slate-600 italic">No configuration errors detected.</li>
-                </ul>
-            </div>
-
+             </div>
         </div>
 
     </div>
+
 </div>
 
 <script>
-    const { createApp, ref, computed, reactive, watch } = Vue;
+const { createApp, ref, computed, reactive, watch } = Vue;
 
-    createApp({
-        setup() {
-            // --- DATA LAYER (Same High Fidelity Data) ---
-            const db = {
-                profiles: {
-                    boltgun: { name: "Boltgun", range:24, a:1, bs:3, s:4, ap:0, d:1, tags:["Rapid Fire 1"] },
-                    bolt_pistol: { name: "Bolt Pistol", range:12, a:1, bs:3, s:4, ap:0, d:1, tags:["Pistol"] },
-                    multi_melta: { name: "Multi-melta", range:18, a:2, bs:4, s:9, ap:4, d:"d6", melta:2, tags:["Heavy", "Melta"] },
-                    heavy_bolter: { name: "Heavy Bolter", range:36, a:3, bs:4, s:5, ap:1, d:2, tags:["Heavy", "Sustained Hits 1"] },
-                    ministorum_flamer: { name: "Ministorum Flamer", range:12, a:"d6", bs:0, s:5, ap:0, d:1, tags:["Torrent", "Ignores Cover"] },
-                    ministorum_heavy_flamer: { name: "Ministorum Heavy Flamer", range:12, a:"d6", bs:0, s:6, ap:1, d:1, tags:["Torrent", "Ignores Cover"] },
-                    meltagun: { name: "Meltagun", range:12, a:1, bs:3, s:9, ap:4, d:"d6", melta:2, tags:["Assault", "Melta"] },
-                    artificer_storm_bolter: { name: "Artificer-crafted SB", range:24, a:2, bs:3, s:4, ap:0, d:2, tags:["Rapid Fire 2"] },
-                    condemnor: { name: "Condemnor Boltgun", range:24, a:1, bs:3, s:4, ap:0, d:1, tags:["Anti-Psyker 2+", "Devastating Wounds", "Precision", "Rapid Fire 1"] },
-                    castigator_autocannons: { name: "Castigator Autocannons", range:48, a:4, bs:3, s:9, ap:1, d:3, tags:["Twin-Linked", "Rapid Fire 4"] },
-                    castigator_battle_cannon: { name: "Castigator Battle Cannon", range:48, a:"d6+3", bs:3, s:10, ap:1, d:3, tags:["Blast", "Ignores Cover"] },
-                    paragon_melta: { name: "Multi-melta (Paragon)", range:18, a:2, bs:3, s:9, ap:4, d:"d6", melta:2, tags:["Melta"] },
-                    penitent_eviscerator: { name: "Penitent Eviscerator", range:0, a:2, bs:4, s:6, ap:2, d:2, tags:["Sustained Hits 1"] },
+createApp({
+    setup() {
+        // --- HIGH FIDELITY DATABASE (v7.0) ---
+        const db = {
+            profiles: {
+                // Ranged
+                bolt_pistol: { name: "Bolt Pistol", range:12, a:1, bs:3, s:4, ap:0, d:1, tags:["Pistol"] },
+                boltgun: { name: "Boltgun", range:24, a:1, bs:3, s:4, ap:0, d:1, tags:["Rapid Fire 1"] },
+                min_flamer: { name: "Ministorum Flamer", range:12, a:"d6", bs:0, s:5, ap:0, d:1, tags:["Torrent", "Ignores Cover"] },
+                min_heavy_flamer: { name: "Ministorum Heavy Flamer", range:12, a:"d6", bs:0, s:6, ap:1, d:1, tags:["Torrent", "Ignores Cover"] },
+                hand_flamer: { name: "Ministorum Hand Flamer", range:12, a:"d6", bs:0, s:4, ap:0, d:1, tags:["Torrent", "Ignores Cover", "Pistol"] },
+                meltagun: { name: "Meltagun", range:12, a:1, bs:3, s:9, ap:4, d:"d6", melta:2, tags:["Melta 2", "Assault"] },
+                multi_melta: { name: "Multi-melta", range:18, a:2, bs:4, s:9, ap:4, d:"d6", melta:2, tags:["Melta 2", "Heavy"] },
+                heavy_bolter: { name: "Heavy Bolter", range:36, a:3, bs:4, s:5, ap:1, d:2, tags:["Heavy", "Sustained Hits 1"] },
+                artificer_sb: { name: "Artificer Storm Bolter", range:24, a:2, bs:3, s:4, ap:0, d:2, tags:["Rapid Fire 2"] },
+                condemnor: { name: "Condemnor Boltgun", range:24, a:1, bs:3, s:4, ap:0, d:1, tags:["Anti-Psyker 2+", "Precision", "Devastating Wounds"] },
+                inferno: { name: "Inferno Pistol", range:6, a:1, bs:3, s:8, ap:4, d:"d3", melta:2, tags:["Melta 2", "Pistol"] },
+                plasma_pistol: { name: "Plasma Pistol (Super)", range:12, a:1, bs:3, s:8, ap:3, d:2, tags:["Pistol", "Hazardous"] },
+                
+                // Vehicle Weapons
+                castigator_ac: { name: "Castigator Autocannons", range:48, a:4, bs:3, s:9, ap:1, d:3, tags:["Twin-Linked", "Rapid Fire 4"] },
+                castigator_bc: { name: "Castigator Battle Cannon", range:48, a:"d6+3", bs:3, s:10, ap:1, d:3, tags:["Blast", "Ignores Cover"] },
+                exorcist_ml: { name: "Exorcist Missile Launcher", range:36, a:"d6+2", bs:3, s:10, ap:3, d:"d6", tags:["Heavy", "Indirect Fire"] },
+                exorcist_rockets: { name: "Exorcist Conflagration", range:36, a:"3d6", bs:3, s:6, ap:1, d:1, tags:["Blast", "Indirect Fire", "Ignores Cover"] },
+                immolation_flamers: { name: "Immolation Flamers", range:18, a:"2d6", bs:0, s:6, ap:1, d:1, tags:["Torrent", "Ignores Cover"] },
+                twin_mm: { name: "Twin Multi-melta", range:18, a:2, bs:3, s:9, ap:4, d:"d6", melta:2, tags:["Twin-Linked", "Melta 2"] },
+                paragon_mm: { name: "Paragon Multi-melta", range:18, a:2, bs:3, s:9, ap:4, d:"d6", melta:2, tags:["Melta 2"] },
+                paragon_grenades: { name: "Paragon Grenades", range:24, a:1, bs:3, s:9, ap:2, d:"d3", tags:["Twin-Linked"] },
+                mortifier_flails: { name: "Twin Penitent Flails", range:0, a:8, bs:3, s:5, ap:1, d:1, tags:["Melee", "Sustained Hits 1", "Twin-Linked"] },
+                mortifier_saws: { name: "Twin Penitent Buzz-Blades", range:0, a:4, bs:3, s:10, ap:3, d:2, tags:["Melee", "Sustained Hits 1", "Twin-Linked"] },
+                penitent_flamers: { name: "Penitent Flamers", range:12, a:"2d6", bs:0, s:5, ap:0, d:1, tags:["Torrent", "Twin-Linked", "Assault"] },
+
+                // Melee
+                chainsword: { name: "Chainsword", range:0, a:3, bs:4, s:3, ap:0, d:1, tags:["Melee"] },
+                power_weapon: { name: "Power Weapon", range:0, a:3, bs:3, s:4, ap:2, d:1, tags:["Melee"] },
+                blessed_blade: { name: "Blessed Blade", range:0, a:3, bs:2, s:6, ap:2, d:2, tags:["Melee", "Lethal Hits"] },
+                eviscerator: { name: "Penitent Eviscerator", range:0, a:2, bs:4, s:6, ap:2, d:2, tags:["Melee", "Sustained Hits 1"] },
+                hallowed_mace: { name: "Hallowed Mace", range:0, a:3, bs:3, s:4, ap:1, d:2, tags:["Melee", "Lethal Hits"] },
+                halberd: { name: "Anointed Halberd", range:0, a:3, bs:3, s:5, ap:2, d:1, tags:["Melee", "Sustained Hits 1"] },
+                spear_faithful: { name: "Spear of the Faithful", range:0, a:3, bs:3, s:5, ap:2, d:2, tags:["Melee"] },
+                mace_castigation: { name: "Mace of Castigation", range:0, a:4, bs:2, s:6, ap:2, d:2, tags:["Melee"] },
+                lance_illumination: { name: "Lance of Illumination (Strike)", range:0, a:5, bs:2, s:8, ap:2, d:3, tags:["Melee", "Devastating Wounds"] },
+                paragon_mace: { name: "Paragon War Mace", range:0, a:3, bs:3, s:12, ap:1, d:3, tags:["Melee"] },
+                paragon_blade: { name: "Paragon War Blade", range:0, a:4, bs:3, s:8, ap:2, d:2, tags:["Melee"] },
+                ardent_blade: { name: "The Ardent Blade", range:0, a:5, bs:2, s:6, ap:3, d:2, tags:["Melee", "Devastating Wounds"] },
+                arco_flails: { name: "Arco-flails", range:0, a:4, bs:4, s:5, ap:0, d:1, tags:["Melee", "Sustained Hits 1"] },
+                relic_weapons: { name: "Relic Weapons", range:0, a:18, bs:2, s:5, ap:2, d:1, tags:["Melee"] }
+            },
+
+            units: {
+                // INFANTRY
+                bss: { 
+                    name: "Battle Sisters Squad", points: 115, role: 'anvil', t:3, sv:3, inv:6, w:1,
+                    legalLeaders: ['canoness', 'palatine', 'imagifier', 'hospitaller', 'dialogus', 'junith', 'aestred'],
+                    loadoutOptions: [
+                        { name: "Superior", count:1, options:['condemnor', 'boltgun'] },
+                        { name: "Regulars", count:7, options:['boltgun'] },
+                        { name: "Special", count:1, options:['meltagun', 'min_flamer', 'boltgun'] },
+                        { name: "Heavy", count:1, options:['multi_melta', 'heavy_bolter', 'min_heavy_flamer'] }
+                    ]
                 },
-                units: {
-                    bss: { 
-                        name: "Battle Sisters", points: 105, role: 'anvil', 
-                        legalLeaders: ['palatine', 'canoness', 'imagifier', 'hospitaller', 'dialogus', 'junith'],
-                        loadoutOptions: [
-                            { name: "Superior", count: 1, options: ['boltgun', 'condemnor'] },
-                            { name: "Regulars", count: 7, options: ['boltgun'] },
-                            { name: "Special", count: 1, options: ['boltgun', 'meltagun', 'ministorum_flamer'] },
-                            { name: "Heavy", count: 1, options: ['boltgun', 'multi_melta', 'heavy_bolter'] }
-                        ]
-                    },
-                    retributors: {
-                        name: "Retributors", points: 120, role: 'hammer',
-                        legalLeaders: ['palatine', 'canoness', 'dialogus', 'hospitaller', 'imagifier', 'junith'],
-                        loadoutOptions: [
-                            { name: "Superior", count: 1, options: ['boltgun', 'condemnor'] },
-                            { name: "Heavy", count: 4, options: ['multi_melta', 'heavy_bolter', 'ministorum_heavy_flamer'] }
-                        ]
-                    },
-                    dominions: {
-                        name: "Dominions", points: 100, role: 'scout',
-                        legalLeaders: ['palatine', 'canoness', 'imagifier'],
-                        loadoutOptions: [
-                            { name: "Superior", count: 1, options: ['boltgun'] },
-                            { name: "Special", count: 4, options: ['meltagun', 'ministorum_flamer'] },
-                            { name: "Regulars", count: 5, options: ['boltgun'] }
-                        ]
-                    },
-                    castigator: {
-                        name: "Castigator", points: 140, role: 'hammer', legalLeaders: [],
-                        loadoutOptions: [
-                            { name: "Main Gun", count: 1, options: ['castigator_battle_cannon', 'castigator_autocannons'] },
-                            { name: "Sponsons", count: 3, options: ['heavy_bolter'] }
-                        ]
-                    },
-                    paragons: {
-                         name: "Paragon Warsuits", points: 210, role: 'hammer', legalLeaders: ['vahl'],
-                         loadoutOptions: [
-                             { name: "Warsuits", count: 3, options: ['paragon_melta'] }
-                         ]
-                    }
+                dominions: { 
+                    name: "Dominion Squad", points: 105, role: 'scout', t:3, sv:3, inv:6, w:1,
+                    legalLeaders: ['canoness', 'palatine', 'imagifier', 'hospitaller', 'dialogus', 'junith', 'aestred'],
+                    loadoutOptions: [
+                        { name: "Superior", count:1, options:['boltgun', 'condemnor'] },
+                        { name: "Special", count:4, options:['meltagun', 'min_flamer', 'artificer_sb'] },
+                        { name: "Regulars", count:5, options:['boltgun'] }
+                    ]
                 },
-                leaders: {
-                    none: { name: "No Leader", points: 0, buffs: [] },
-                    palatine: { name: "Palatine", points: 50, buffs: ["lethal_hits"] },
-                    canoness: { name: "Canoness", points: 50, buffs: ["reroll_1_hit"] },
-                    vahl: { name: "Morvenn Vahl", points: 145, buffs: ["full_rerolls"] },
-                    dialogus: { name: "Dialogus", points: 30, buffs: ["auto_6_md"] },
-                    imagifier: { name: "Imagifier", points: 35, buffs: ["2+_save"] }
+                retributors: { 
+                    name: "Retributor Squad", points: 125, role: 'hammer', t:3, sv:3, inv:6, w:1,
+                    legalLeaders: ['canoness', 'palatine', 'imagifier', 'hospitaller', 'dialogus', 'junith', 'aestred'],
+                    loadoutOptions: [
+                        { name: "Superior", count:1, options:['condemnor', 'boltgun'] },
+                        { name: "Heavy Weapons", count:4, options:['multi_melta', 'heavy_bolter', 'min_heavy_flamer'] }
+                    ]
                 },
-                enhancements: {
-                    none: { name: "None", points: 0 },
-                    fire_fury: { name: "Fire and Fury", points: 20, detachment: "bringers_of_flame", buff: "plus_1_atk_torrent" },
-                    blade_ellynor: { name: "Blade of St Ellynor", points: 15, detachment: "hallowed_martyrs", buff: "stat_boost" },
-                    litanies: { name: "Litanies of Faith", points: 10, detachment: "army_of_faith", buff: "reroll_md" }
+                sacresants: { 
+                    name: "Celestian Sacresants", points: 150, role: 'anvil', t:3, sv:3, inv:4, w:1,
+                    legalLeaders: ['canoness', 'palatine', 'imagifier', 'hospitaller', 'junith', 'aestred'],
+                    loadoutOptions: [
+                        { name: "Superior", count:1, options:['spear_faithful'] },
+                        { name: "Sacresants", count:9, options:['halberd', 'hallowed_mace'] }
+                    ]
                 },
-                targets: {
-                    knight: { name: "Knight (T12 2+)", t:12, sv:2, inv:5, w:22, models:1 },
-                    rhino: { name: "Rhino (T9 3+)", t:9, sv:3, inv:7, w:10, models:1 },
-                    marine: { name: "Marine (T4 3+)", t:4, sv:3, inv:7, w:2, models:5 },
-                    horde: { name: "Horde (T3 5+)", t:3, sv:5, inv:7, w:1, models:20 }
-                }
-            };
+                repentia: {
+                    name: "Repentia Squad", points: 180, role: 'hammer', t:3, sv:7, inv:6, w:1,
+                    legalLeaders: [], 
+                    loadoutOptions: [
+                        { name: "Repentia", count:10, options:['eviscerator'] }
+                    ]
+                },
+                arcos: {
+                    name: "Arco-Flagellants", points: 150, role: 'hammer', t:3, sv:7, inv:6, w:2, fnp:4,
+                    legalLeaders: ['preacher', 'missionary'],
+                    loadoutOptions: [ { name: "Arcos", count:10, options:['arco_flails'] } ]
+                },
+                seraphim: {
+                    name: "Seraphim Squad", points: 170, role: 'scout', t:3, sv:3, inv:5, w:1,
+                    legalLeaders: ['canoness_jump', 'celestine'],
+                    loadoutOptions: [
+                        { name: "Superior", count:1, options:['plasma_pistol', 'bolt_pistol'] },
+                        { name: "Special", count:4, options:['hand_flamer', 'inferno'] },
+                        { name: "Regulars", count:5, options:['bolt_pistol'] }
+                    ]
+                },
+                zephyrim: {
+                    name: "Zephyrim Squad", points: 180, role: 'hammer', t:3, sv:3, inv:5, w:1,
+                    legalLeaders: ['canoness_jump', 'celestine'],
+                    loadoutOptions: [
+                        { name: "Superior", count:1, options:['power_weapon'] },
+                        { name: "Zephyrim", count:9, options:['power_weapon'] }
+                    ]
+                },
+                novitiates: {
+                    name: "Sisters Novitiate", points: 85, role: 'scout', t:3, sv:4, inv:6, w:1,
+                    legalLeaders: ['palatine', 'canoness'],
+                    loadoutOptions: [{ name: "Models", count:10, options:['chainsword', 'boltgun'] }]
+                },
 
-            // --- STATE ---
-            const roster = ref([]);
-            const editIndex = ref(null); // If not null, we are editing this index in roster
-            const pointsLimit = ref(2000);
-            
-            const global = reactive({ detachment: 'bringers_of_flame', mdPool: 2 });
-            const context = reactive({ halfRange: true, stationary: false, belowHalf: false });
-            const targetKey = ref('knight');
-            
-            // The "Draft" is the unit currently being configured in the middle column
-            const draft = reactive({
-                unitKey: 'retributors',
-                leaderKey: 'none',
-                enhancementKey: 'none',
-                loadout: {}
-            });
-            
-            const armySimResult = ref(null);
+                // VEHICLES
+                rhino: { name: "Sororitas Rhino", points: 75, role: 'scout', t:9, sv:3, inv:6, w:10, isChar:false, legalLeaders:[], loadoutOptions:[] },
+                immolator: { 
+                    name: "Immolator", points: 115, role: 'hammer', t:10, sv:3, inv:6, w:11, isChar:false, legalLeaders:[],
+                    loadoutOptions: [{ name: "Main Gun", count:1, options:['immolation_flamers', 'twin_mm', 'heavy_bolter'] }]
+                },
+                castigator: {
+                    name: "Castigator", points: 150, role: 'hammer', t:10, sv:3, inv:6, w:11, isChar:false, legalLeaders:[],
+                    loadoutOptions: [
+                        { name: "Turret", count:1, options:['castigator_bc', 'castigator_ac'] },
+                        { name: "Sponsons", count:3, options:['heavy_bolter'] }
+                    ]
+                },
+                exorcist: {
+                    name: "Exorcist", points: 190, role: 'hammer', t:10, sv:3, inv:6, w:11, isChar:false, legalLeaders:[],
+                    loadoutOptions: [{ name: "Launcher", count:1, options:['exorcist_ml', 'exorcist_rockets'] }]
+                },
+                paragons: {
+                    name: "Paragon Warsuits", points: 210, role: 'hammer', t:7, sv:2, inv:4, w:4, isChar:false,
+                    legalLeaders: ['vahl'],
+                    loadoutOptions: [
+                        { name: "Ranged", count:3, options:['paragon_mm', 'multi_melta', 'heavy_bolter'] },
+                        { name: "Melee", count:3, options:['paragon_blade', 'paragon_mace'] },
+                        { name: "Shoulder", count:3, options:['paragon_grenades'] }
+                    ]
+                },
+                mortifiers: {
+                    name: "Mortifiers", points: 140, role: 'hammer', t:6, sv:4, inv:6, w:5, fnp:5, isChar:false, legalLeaders:[],
+                    loadoutOptions: [
+                        { name: "Melee", count:2, options:['mortifier_flails', 'mortifier_saws'] },
+                        { name: "Ranged", count:4, options:['heavy_bolter', 'min_flamer'] }
+                    ]
+                },
+                penitents: {
+                    name: "Penitent Engines", points: 150, role: 'hammer', t:6, sv:4, inv:6, w:5, fnp:5, isChar:false, legalLeaders:[],
+                    loadoutOptions: [
+                        { name: "Melee", count:2, options:['mortifier_saws', 'mortifier_flails'] },
+                        { name: "Ranged", count:2, options:['penitent_flamers'] }
+                    ]
+                },
 
-            // --- HELPERS ---
-            const draftUnitData = computed(() => db.units[draft.unitKey]);
-            const validDraftLeaders = computed(() => {
-                const allowed = draftUnitData.value.legalLeaders;
-                return Object.fromEntries(Object.entries(db.leaders).filter(([k,v]) => k === 'none' || allowed.includes(k)));
-            });
-            
-            const validEnhancements = computed(() => {
-                return Object.fromEntries(
-                    Object.entries(db.enhancements).filter(([key, val]) => 
-                        key === 'none' || val.detachment === global.detachment
-                    )
-                );
-            });
+                // CHARACTERS
+                canoness: { name: "Canoness", points: 50, role: 'buff', isChar:true, legalLeaders:[], loadoutOptions:[{name:"Weapon",count:1,options:['blessed_blade']}] },
+                palatine: { name: "Palatine", points: 50, role: 'buff', isChar:true, legalLeaders:[], loadoutOptions:[{name:"Weapon",count:1,options:['palatine_blade','plasma_pistol']}] },
+                dialogus: { name: "Dialogus", points: 30, role: 'buff', isChar:true, legalLeaders:[], loadoutOptions:[{name:"Weapon",count:1,options:['bolt_pistol']}] },
+                imagifier: { name: "Imagifier", points: 35, role: 'buff', isChar:true, legalLeaders:[], loadoutOptions:[{name:"Weapon",count:1,options:['boltgun']}] },
+                hospitaller: { name: "Hospitaller", points: 35, role: 'buff', isChar:true, legalLeaders:[], loadoutOptions:[{name:"Weapon",count:1,options:['bolt_pistol']}] },
+                dogmata: { name: "Dogmata", points: 45, role: 'buff', isChar:true, legalLeaders:[], loadoutOptions:[{name:"Weapon",count:1,options:['mace_righteous']}] },
+                preacher: { name: "Ministorum Priest", points: 50, role: 'buff', isChar:true, legalLeaders:[], loadoutOptions:[{name:"Weapon",count:1,options:['chainsword']}] },
+                missionary: { name: "Missionary", points: 30, role: 'buff', isChar:true, legalLeaders:[], loadoutOptions:[{name:"Weapon",count:1,options:['chainsword']}] },
+                
+                // EPIC HEROES
+                vahl: { name: "Morvenn Vahl", points: 145, role: 'hammer', isChar:true, legalLeaders:[], loadoutOptions:[{name:"Spear",count:1,options:['lance_illumination']}] },
+                celestine: { name: "Saint Celestine", points: 135, role: 'anvil', isChar:true, legalLeaders:[], loadoutOptions:[{name:"Blade",count:1,options:['ardent_blade']}] },
+                junith: { name: "Junith Eruita", points: 90, role: 'buff', isChar:true, legalLeaders:[], loadoutOptions:[{name:"Mace",count:1,options:['mace_castigation']}] },
+                triumph: { name: "Triumph of St. Katherine", points: 190, role: 'buff', isChar:true, legalLeaders:[], loadoutOptions:[{name:"Relics",count:1,options:['relic_weapons']}] },
+                aestred: { name: "Aestred Thurga", points: 55, role: 'buff', isChar:true, legalLeaders:[], loadoutOptions:[{name:"Blade",count:1,options:['blade_vigil']}] },
+                stern: { name: "Daemonifuge", points: 80, role: 'hammer', isChar:true, legalLeaders:[], loadoutOptions:[{name:"Blade",count:1,options:['sanctity']}] },
+                canoness_jump: { name: "Canoness (Jump)", points: 75, role: 'buff', isChar:true, legalLeaders:[], loadoutOptions:[{name:"Weapon",count:1,options:['blessed_halberd']}] }
+            },
 
-            // Init draft loadout on unit change
-            const resetDraftLoadout = () => {
-                const u = db.units[draft.unitKey];
-                u.loadoutOptions.forEach((slot, i) => {
-                    draft.loadout[i] = slot.options[0];
-                });
-                // Reset leader if invalid
-                if(!validDraftLeaders.value[draft.leaderKey]) draft.leaderKey = 'none';
-            };
-            // Run once on mount
-            resetDraftLoadout();
+            leaders: {
+                none: { name: "No Leader", points: 0, buffs: [] },
+                palatine: { name: "Palatine", points: 50, buffs: ["lethal_hits"] },
+                canoness: { name: "Canoness", points: 50, buffs: ["reroll_1_hit"] },
+                vahl: { name: "Morvenn Vahl", points: 145, buffs: ["full_rerolls"] },
+                dialogus: { name: "Dialogus", points: 30, buffs: ["auto_6_md"] },
+                imagifier: { name: "Imagifier", points: 35, buffs: ["2+_save"] },
+                hospitaller: { name: "Hospitaller", points: 35, buffs: ["fnp_5"] },
+                junith: { name: "Junith Eruita", points: 90, buffs: ["minus_1_to_hit"] },
+                celestine: { name: "Saint Celestine", points: 135, buffs: ["4+_invuln", "resurrection"] },
+                canoness_jump: { name: "Canoness (Jump)", points: 75, buffs: ["reroll_hits"] },
+                aestred: { name: "Aestred Thurga", points: 55, buffs: ["dev_wounds"] },
+                preacher: { name: "Preacher", points: 50, buffs: ["plus_1_wound"] }
+            },
 
-            // --- ROSTER LOGIC ---
-            const totalPoints = computed(() => {
-                return roster.value.reduce((sum, entry) => {
-                    let cost = entry.points;
-                    if(entry.leader !== 'none') cost += db.leaders[entry.leader].points;
-                    if(entry.enhancement !== 'none') cost += db.enhancements[entry.enhancement].points;
-                    return sum + cost;
-                }, 0);
-            });
+            enhancements: {
+                none: { name: "None", points: 0 },
+                // Hallowed Martyrs
+                blade_ellynor: { name: "Blade of St Ellynor", points: 15, detachment: "hallowed_martyrs", buff: "stat_boost" },
+                saintly_example: { name: "Saintly Example", points: 10, detachment: "hallowed_martyrs", buff: "md_gen" },
+                through_suffering: { name: "Through Suffering", points: 25, detachment: "hallowed_martyrs", buff: "stat_boost" },
+                // Bringers
+                fire_fury: { name: "Fire and Fury", points: 20, detachment: "bringers_of_flame", buff: "plus_1_atk_torrent" },
+                iron_surplice: { name: "Iron Surplice", points: 15, detachment: "bringers_of_flame", buff: "durability" },
+                righteous_rage: { name: "Righteous Rage", points: 15, detachment: "bringers_of_flame", buff: "stat_boost" },
+                // Penitent
+                catechism: { name: "Catechism of Penitence", points: 20, detachment: "penitent_host", buff: "keyword" },
+                psalm: { name: "Psalm of Judgement", points: 25, detachment: "penitent_host", buff: "md_gen" },
+                refrain: { name: "Refrain of Faith", points: 25, detachment: "penitent_host", buff: "5+_invuln" },
+                // Army of Faith
+                litanies: { name: "Litanies of Faith", points: 10, detachment: "army_of_faith", buff: "reroll_md" },
+                triptych: { name: "Triptych of Macharius", points: 20, detachment: "army_of_faith", buff: "durability" },
+                blade_faith: { name: "Blade of Faithful", points: 15, detachment: "army_of_faith", buff: "stat_boost" }
+            },
 
-            const commitToRoster = () => {
-                const u = db.units[draft.unitKey];
-                const entry = {
-                    id: Date.now(),
-                    unitKey: draft.unitKey,
-                    name: u.name,
-                    points: u.points,
-                    role: u.role,
-                    leader: draft.leaderKey,
-                    enhancement: draft.enhancementKey,
-                    loadout: { ...draft.loadout } // Deep copy loadout
+            targets: {
+                knight: { name: "Imperial Knight", t:12, sv:2, inv:5, w:22, models:1 },
+                rhino: { name: "Rhino", t:9, sv:3, inv:7, w:10, models:1 },
+                marine: { name: "Marine (MEQ)", t:4, sv:3, inv:7, w:2, models:5 },
+                terminator: { name: "Terminator (TEQ)", t:6, sv:2, inv:4, w:3, models:5 },
+                custodes: { name: "Custodes", t:6, sv:2, inv:4, w:4, models:5 },
+                horde: { name: "Horde (GEQ)", t:3, sv:5, inv:7, w:1, models:20 }
+            }
+        };
+
+        const state = reactive({
+            roster: [],
+            totalPoints: 0
+        });
+
+        const global = reactive({ detachment: 'bringers_of_flame', penitentVow: 'movement', mdPool: 2 });
+        const draft = reactive({ unitKey: 'retributors', leaderKey: 'none', enhancementKey: 'none', loadout: {} });
+        const context = reactive({ halfRange: true, stationary: false, belowHalf: false });
+        const targetKey = ref('knight');
+        const draftSimResult = ref(null);
+        const armySimResult = ref(null);
+
+        // Sorting Units
+        const sortedUnits = computed(() => {
+            const groups = { chars:[], battleline:[], infantry:[], vehicles:[] };
+            for(const [k, u] of Object.entries(db.units)) {
+                if(u.isChar || db.leaders[k]) groups.chars.push({...u, key:k});
+                else if(u.role === 'scout' && u.w === 1) groups.battleline.push({...u, key:k}); // Loose categorizing
+                else if(u.w === 1 || u.w === 2) groups.infantry.push({...u, key:k});
+                else groups.vehicles.push({...u, key:k});
+            }
+            return groups;
+        });
+
+        // Computed Draft Helpers
+        const draftUnit = computed(() => db.units[draft.unitKey]);
+        const validEnhancements = computed(() => {
+            return Object.fromEntries(Object.entries(db.enhancements).filter(([k, v]) => 
+                k === 'none' || v.detachment === global.detachment
+            ));
+        });
+
+        // Initialize Loadout
+        const resetDraft = () => {
+            const u = draftUnit.value;
+            draft.loadout = {};
+            u.loadoutOptions.forEach((slot, i) => draft.loadout[i] = slot.options[0]);
+            draft.leaderKey = 'none';
+            draft.enhancementKey = 'none';
+            draftSimResult.value = { avg: 0, kill: 0 };
+        };
+        resetDraft(); // Run on init
+
+        // --- COMPILER (Stat Engine) ---
+        const compileProfile = (unit, leaderKey, enhancementKey, loadout, context, global) => {
+            let volley = [];
+            const lData = db.leaders[leaderKey];
+
+            unit.loadoutOptions.forEach((slot, i) => {
+                const profileKey = loadout[i];
+                const base = db.profiles[profileKey];
+                if (!base) return;
+
+                let w = {
+                    ...base,
+                    id: profileKey,
+                    count: slot.count,
+                    displayName: base.name,
+                    tags: [...(base.tags || [])],
+                    rules: [],
+                    buffs: []
                 };
 
-                if (editIndex.value !== null) {
-                    roster.value[editIndex.value] = entry;
-                    editIndex.value = null;
-                } else {
-                    roster.value.push(entry);
-                }
-            };
-
-            const editUnit = (idx) => {
-                const entry = roster.value[idx];
-                editIndex.value = idx;
-                draft.unitKey = entry.unitKey;
-                draft.leaderKey = entry.leader;
-                draft.enhancementKey = entry.enhancement;
-                draft.loadout = { ...entry.loadout };
-            };
-
-            const cancelEdit = () => {
-                editIndex.value = null;
-                resetDraftLoadout();
-            };
-
-            const removeUnit = (idx) => {
-                roster.value.splice(idx, 1);
-                if (editIndex.value === idx) cancelEdit();
-            };
-
-            const duplicateUnit = (idx) => {
-                const entry = { ...roster.value[idx], id: Date.now() };
-                roster.value.push(entry);
-            };
-            
-            const clearRoster = () => {
-                roster.value = [];
-                cancelEdit();
-            };
-
-            // --- SIMULATION ENGINE (Reused from v4 but adapted for objects) ---
-            const parseD6 = (val) => {
-                if (typeof val === 'number') return val;
-                if (val === 'd6') return Math.floor(Math.random()*6)+1;
-                if (val.includes('d6+')) return Math.floor(Math.random()*6)+1 + parseInt(val.split('+')[1]);
-                return 1;
-            };
-
-            const simOneUnit = (unitEntry, target) => {
-                // Construct Volley
-                const uData = db.units[unitEntry.unitKey];
-                const lData = db.leaders[unitEntry.leader];
-                let volley = [];
+                // 1. UNIT STATE
+                if (w.tags.includes('Heavy') && context.stationary) w.rules.push('plus_1_hit');
                 
-                uData.loadoutOptions.forEach((slot, i) => {
-                    const profileKey = unitEntry.loadout[i];
-                    const base = db.profiles[profileKey];
-                    let w = { ...base, count: slot.count, tags: [...base.tags], rules: [] };
-                    
-                    // Logic Injection
-                    if (global.detachment === 'bringers_of_flame' && context.halfRange && (w.tags.includes('Assault') || !w.tags.includes('Heavy'))) w.s += 1;
-                    if (global.detachment === 'hallowed_martyrs' && context.belowHalf) w.rules.push('plus_1_hit');
-                    if (lData.buffs.includes('lethal_hits')) w.tags.push('Lethal Hits');
-                    if (lData.buffs.includes('full_rerolls')) w.rules.push('reroll_hits', 'reroll_wounds');
-                    
-                    volley.push(w);
-                });
+                // Rapid Fire Logic
+                if (context.halfRange) {
+                    const rapid = w.tags.find(t => t.includes('Rapid Fire'));
+                    if (rapid) w.a += parseInt(rapid.split(' ')[2]);
+                }
 
-                // Sim Loop (Simplified 1000 iter for speed on aggregate)
-                let totalDmg = 0;
-                for(let i=0; i<500; i++) {
-                    let runDmg = 0;
-                    for (let wpn of volley) {
-                        let blast = wpn.tags.includes('Blast') ? Math.floor(target.models/5) : 0;
-                        let shots = 0;
-                        for(let c=0; c<wpn.count; c++) shots += parseD6(wpn.a) + blast;
-                        
-                        // Hit/Wound/Save Loop
-                        for(let s=0; s<shots; s++) {
-                            let hit = false, crit = false;
-                            // Torrent
-                            if(wpn.tags.includes('Torrent')) hit = true;
-                            else {
-                                let r = Math.floor(Math.random()*6)+1;
-                                if(wpn.rules.includes('plus_1_hit')) r=Math.min(6, r+1);
-                                if(r < wpn.bs && wpn.rules.includes('reroll_hits')) r = Math.floor(Math.random()*6)+1;
-                                if(r >= 6) { hit=true; crit=true; }
-                                else if(r >= wpn.bs) hit=true;
+                // 2. DETACHMENT RULES
+                if (global.detachment === 'bringers_of_flame') {
+                    if (context.halfRange && (w.tags.includes('Assault') || !w.tags.includes('Heavy'))) w.s += 1;
+                    if (!w.tags.includes('Assault') && !w.tags.includes('Melee')) w.tags.push('Assault');
+                }
+                if (global.detachment === 'hallowed_martyrs') {
+                    if (context.belowHalf) w.rules.push('plus_1_hit');
+                    // Logic for +1 wound would go here if damaged further
+                }
+                if (global.detachment === 'penitent_host') {
+                    if (global.penitentVow === 'assault' && (unit.name.includes('Repentia') || unit.name.includes('Penitent') || unit.name.includes('Arco'))) {
+                        if(w.tags.includes('Melee')) { w.a += 1; w.s += 1; }
+                    }
+                }
+
+                // 3. LEADER BUFFS
+                if (lData.buffs.includes('lethal_hits')) w.tags.push('Lethal Hits');
+                if (lData.buffs.includes('full_rerolls')) w.rules.push('reroll_hits', 'reroll_wounds');
+                if (lData.buffs.includes('reroll_1_hit')) w.rules.push('reroll_1_hit');
+                if (lData.buffs.includes('plus_1_wound')) w.rules.push('plus_1_wound');
+                if (lData.buffs.includes('dev_wounds')) w.tags.push('Devastating Wounds');
+
+                // 4. ENHANCEMENT
+                if (enhancementKey === 'fire_fury' && w.tags.includes('Torrent')) w.a = (typeof w.a === 'number' ? w.a + 1 : w.a + "+1");
+                if (enhancementKey === 'blade_ellynor' && (unit.name.includes('Canoness') || unit.name.includes('Palatine'))) {
+                     if(w.tags.includes('Melee')) { w.s+=1; w.ap+=1; w.d+=1; }
+                }
+
+                volley.push(w);
+            });
+            return volley;
+        };
+
+        const compiledDraft = computed(() => {
+            return compileProfile(draftUnit.value, draft.leaderKey, draft.enhancementKey, draft.loadout, context, global);
+        });
+
+        // --- SIMULATOR ---
+        const parseD6 = (val) => {
+            if (typeof val === 'number') return val;
+            let total = 0;
+            let bonus = 0;
+            if (val.includes('+')) bonus = parseInt(val.split('+')[1]);
+            
+            if (val.startsWith('d6')) total = Math.floor(Math.random()*6)+1;
+            else if (val.startsWith('2d6')) total = Math.floor(Math.random()*6)+1 + Math.floor(Math.random()*6)+1;
+            else if (val.startsWith('3d6')) total = Math.floor(Math.random()*6)+1 + Math.floor(Math.random()*6)+1 + Math.floor(Math.random()*6)+1;
+            else if (val.startsWith('d3')) total = Math.floor(Math.random()*3)+1;
+            
+            return total + bonus;
+        };
+
+        const runSimOne = (volley, target) => {
+            const iterations = 2000;
+            let totalDmg = 0;
+            let kills = 0;
+
+            for(let i=0; i<iterations; i++) {
+                let runDmg = 0;
+                let currentMD = global.mdPool;
+
+                for (let wpn of volley) {
+                    let blast = wpn.tags.includes('Blast') ? Math.floor(target.models/5) : 0;
+                    let shots = 0;
+                    for(let c=0; c<wpn.count; c++) shots += parseD6(wpn.a) + blast;
+
+                    const isLethal = wpn.tags.includes('Lethal Hits');
+                    const isSustained = wpn.tags.includes('Sustained Hits 1');
+                    const isDev = wpn.tags.includes('Devastating Wounds');
+                    const isTwin = wpn.tags.includes('Twin-Linked');
+                    const isTorrent = wpn.tags.includes('Torrent');
+                    const isIndirect = wpn.tags.includes('Indirect Fire');
+
+                    // Anti Logic (Simple)
+                    let critWoundReq = 6;
+
+                    for(let s=0; s<shots; s++) {
+                        // 1. HIT
+                        let hit = false, critHit = false;
+                        if (isTorrent) hit = true;
+                        else {
+                            let roll = Math.floor(Math.random()*6)+1;
+                            if(wpn.rules.includes('plus_1_hit')) roll = Math.min(6, roll+1);
+                            if(roll < wpn.bs && (wpn.rules.includes('reroll_hits') || (wpn.rules.includes('reroll_1_hit') && roll===1) || isTwin)) {
+                                roll = Math.floor(Math.random()*6)+1;
+                                if(wpn.rules.includes('plus_1_hit')) roll = Math.min(6, roll+1);
                             }
-                            if(!hit) continue;
+                            if(roll >= 6) { hit=true; critHit=true; }
+                            else if(roll >= wpn.bs) hit=true;
+                        }
+
+                        if(!hit) continue;
+                        let hits = 1;
+                        if(critHit && isSustained) hits++;
+
+                        // 2. WOUND
+                        for(let h=0; h<hits; h++) {
+                            let wound = false, skipSave = false;
                             
-                            // Wound
-                            let wound = false, autoWound = false;
-                            if(crit && wpn.tags.includes('Lethal Hits') && !wpn.tags.includes('Torrent')) autoWound=true;
-                            
-                            if(autoWound) wound=true;
+                            if(critHit && isLethal && h===0 && !isTorrent) wound = true;
                             else {
                                 let wr = Math.floor(Math.random()*6)+1;
                                 let req = 4;
@@ -520,102 +700,117 @@
                                 else if(wpn.s == target.t) req=4;
                                 else if(wpn.s <= target.t/2) req=6;
                                 else req=5;
-                                if(wr < req && wpn.rules.includes('reroll_wounds')) wr = Math.floor(Math.random()*6)+1;
-                                if(wr >= req) wound=true;
+                                
+                                if(wpn.rules.includes('plus_1_wound')) req = Math.max(2, req-1);
+
+                                if(wr < req && (wpn.rules.includes('reroll_wounds') || isTwin)) wr = Math.floor(Math.random()*6)+1;
+                                
+                                if(wr >= critWoundReq && isDev) { wound=true; skipSave=true; }
+                                else if(wr >= req) wound=true;
                             }
+
                             if(!wound) continue;
 
-                            // Save
-                            let sr = Math.floor(Math.random()*6)+1;
-                            let sv = target.sv + wpn.ap; // AP positive in DB
-                            let best = (target.inv < 7 && target.inv < sv) ? target.inv : sv;
-                            if(sr < best) {
-                                let d = (typeof wpn.d === 'string') ? parseD6(wpn.d) : wpn.d;
-                                if(wpn.tags.includes('Melta') && context.halfRange) d += wpn.melta;
-                                runDmg += d;
+                            // 3. SAVE
+                            let damageDealt = 0;
+                            if(skipSave) damageDealt = 1;
+                            else {
+                                let sr = Math.floor(Math.random()*6)+1;
+                                let ap = wpn.ap; // DB uses positive int (4 = -4)
+                                let saveReq = target.sv + ap;
+                                let best = (target.inv < 7 && target.inv < saveReq) ? target.inv : saveReq;
+                                if(sr < best) damageDealt = 1;
+                            }
+
+                            // 4. DAMAGE
+                            if(damageDealt) {
+                                let val = (typeof wpn.d === 'string') ? parseD6(wpn.d) : wpn.d;
+                                if(wpn.tags.includes('Melta 2') && context.halfRange) val += 2;
+                                runDmg += val;
                             }
                         }
                     }
-                    totalDmg += runDmg;
                 }
-                return (totalDmg / 500);
+                if(runDmg >= target.w) kills++;
+                totalDmg += runDmg;
+            }
+            return { avg: (totalDmg/iterations).toFixed(1), kill: ((kills/iterations)*100).toFixed(0) };
+        };
+
+        // Watchers for Live Sim
+        watch([draft, context, global, targetKey], () => {
+            const volley = compiledDraft.value;
+            const res = runSimOne(volley, db.targets[targetKey.value]);
+            draftSimResult.value = res;
+        }, { deep: true });
+
+        // --- ROSTER ACTIONS ---
+        const addToRoster = () => {
+            const u = db.units[draft.unitKey];
+            const entry = {
+                id: Date.now(),
+                unitKey: draft.unitKey,
+                name: u.name,
+                points: u.points,
+                leader: draft.leaderKey,
+                enhancement: draft.enhancementKey,
+                loadout: { ...draft.loadout }
             };
+            state.roster.push(entry);
+        };
 
-            // Draft Sim (Live feedback)
-            const draftSimResult = computed(() => {
-                // Create a temporary object matching roster format
-                const tempEntry = {
-                    unitKey: draft.unitKey,
-                    leader: draft.leaderKey,
-                    loadout: draft.loadout
-                };
-                return simOneUnit(tempEntry, db.targets[targetKey.value]).toFixed(1);
+        const totalPoints = computed(() => {
+            return state.roster.reduce((sum, e) => {
+                let cost = db.units[e.unitKey].points;
+                if(e.leader !== 'none') cost += db.leaders[e.leader].points;
+                if(e.enhancement !== 'none') cost += db.enhancements[e.enhancement].points;
+                return sum + cost;
+            }, 0);
+        });
+
+        const getUnitPoints = (e) => {
+            let cost = db.units[e.unitKey].points;
+            if(e.leader !== 'none') cost += db.leaders[e.leader].points;
+            if(e.enhancement !== 'none') cost += db.enhancements[e.enhancement].points;
+            return cost;
+        };
+
+        const simArmy = () => {
+            let total = 0;
+            let units = [];
+            state.roster.forEach(entry => {
+                const u = db.units[entry.unitKey];
+                const volley = compileProfile(u, entry.leader, entry.enhancement, entry.loadout, context, global);
+                const res = runSimOne(volley, db.targets[targetKey.value]);
+                total += parseFloat(res.avg);
+                units.push({ name: u.name, dmg: res.avg });
             });
+            armySimResult.value = { total: total.toFixed(1), units: units.sort((a,b) => b.dmg - a.dmg) };
+        };
 
-            // Full Army Sim
-            const simFullArmy = () => {
-                let total = 0;
-                let breakdown = [];
-                roster.value.forEach(entry => {
-                    const dmg = simOneUnit(entry, db.targets[targetKey.value]);
-                    total += dmg;
-                    breakdown.push({ name: entry.name, dmg: dmg.toFixed(1) });
-                });
-                armySimResult.value = {
-                    totalAvg: total.toFixed(1),
-                    breakdown: breakdown.sort((a,b) => b.dmg - a.dmg)
-                };
-            };
-
-            // --- AGGREGATE SCORES ---
-            const armyScores = computed(() => {
-                let at = 0, ah = 0, scoring = 0;
-                roster.value.forEach(entry => {
-                    const u = db.units[entry.unitKey];
-                    if(u.role === 'hammer') at += 20;
-                    if(u.role === 'scout') scoring += 15;
-                    // Check loadout for Blast/Torrent
-                    let hasHorde = false;
-                    Object.values(entry.loadout).forEach(k => {
-                        if(db.profiles[k].tags.includes('Blast') || db.profiles[k].tags.includes('Torrent')) hasHorde = true;
-                    });
-                    if(hasHorde) ah += 15;
-                });
-                
-                // Targets for 2000pts
-                return {
-                    at: (at / 120) * 100, // Goal: ~6 Hammer units
-                    ah: (ah / 80) * 100,
-                    scoring: (scoring / 60) * 100
-                };
+        // Scores
+        const armyScores = computed(() => {
+            let at=0, ah=0, scoring=0;
+            state.roster.forEach(e => {
+                const u = db.units[e.unitKey];
+                if(u.role === 'hammer') at += 20;
+                if(u.role === 'scout') scoring += 15;
+                if(u.role === 'anvil') ah += 10;
             });
-
-            const armyIssues = computed(() => {
-                let iss = [];
-                const points = totalPoints.value;
-                if(points > pointsLimit.value) iss.push(`Over Points Limit by ${points - pointsLimit.value}!`);
-                if(points < 1980 && points > 0) iss.push(`Under Points: You have ${pointsLimit.value - points}pts remaining.`);
-                
-                // Rule of 3 Check
-                let counts = {};
-                roster.value.forEach(u => {
-                    counts[u.unitKey] = (counts[u.unitKey] || 0) + 1;
-                    if(counts[u.unitKey] > 3 && u.unitKey !== 'bss') iss.push(`Rule of 3 Violation: Too many ${u.name}`);
-                });
-
-                return iss;
-            });
-
             return {
-                db, global, context, targetKey, draft, draftUnitData,
-                validDraftLeaders, validEnhancements,
-                roster, totalPoints, pointsLimit,
-                resetDraftLoadout, commitToRoster, editUnit, removeUnit, duplicateUnit, clearRoster, cancelEdit, editIndex,
-                draftSimResult, armySimResult, simFullArmy,
-                armyScores, armyIssues
+                'Anti-Tank': { val: at, target: 120, color:'bg-red-500' },
+                'Horde/Anvil': { val: ah, target: 100, color:'bg-emerald-500' },
+                'Scoring': { val: scoring, target: 80, color:'bg-blue-500' }
             };
-        }
-    }).mount('#app');
+        });
+
+        return {
+            db, global, draft, context, targetKey, draftUnit, validEnhancements,
+            compiledDraft, draftSimResult, roster: state.roster, totalPoints,
+            resetDraft, addToRoster, getUnitPoints, simArmy, armySimResult, armyScores, sortedUnits
+        };
+    }
+}).mount('#app');
 </script>
 
 </body>
